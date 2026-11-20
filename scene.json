@@ -1,0 +1,221 @@
+{
+  "v": 1,
+  "meshes": [],
+  "timeline": {
+    "v": 1,
+    "source": "tracksEditor",
+    "fps": 30,
+    "frame": 0,
+    "start": 0,
+    "end": 100,
+    "playMode": "loop",
+    "strips": [],
+    "tracks": {},
+    "hasTracks": false,
+    "bakedTimelineAnim": false,
+    "meshAnim": [],
+    "charLayers": [],
+    "audioLayers": [],
+    "audioLibrary": []
+  },
+  "useTimeline": true,
+  "bakedTimelineAnim": false,
+  "meshAnim": [],
+  "lighting": {
+    "meshLight": {
+      "defaultOn": true,
+      "envOn": false,
+      "exposure": 1,
+      "env": 1,
+      "envRot": 0,
+      "envTint": [
+        1,
+        1,
+        1
+      ],
+      "envBrightness": 1,
+      "envContrast": 1,
+      "envExposure": 0,
+      "hemi": 1,
+      "amb": 1,
+      "ambCol": [
+        1,
+        1,
+        1
+      ],
+      "keyOn": true,
+      "keyInt": 5,
+      "keyCol": [
+        1,
+        0.98,
+        0.95
+      ],
+      "keyAz": 145,
+      "keyEl": 45,
+      "keyDist": 6,
+      "studioKeyCastShadow": false,
+      "envCustom": null
+    },
+    "sceneLights": [],
+    "rendererState": {
+      "toneMapping": 0,
+      "toneMappingExposure": 1,
+      "outputColorSpace": "srgb"
+    },
+    "shadows": {
+      "enabled": false,
+      "meshes": [],
+      "sceneLights": [],
+      "studioKeyCastShadow": false,
+      "targetCenter": [
+        0,
+        0,
+        0
+      ]
+    },
+    "envFile": null,
+    "postFx": null,
+    "useTimeline": true,
+    "bakedTimelineAnim": false
+  },
+  "splats": [
+    {
+      "format": 0,
+      "ext": "compressed.ply",
+      "pos": [
+        0,
+        0,
+        0
+      ],
+      "rot": [
+        0,
+        0,
+        0
+      ],
+      "scl": [
+        1,
+        1,
+        1
+      ],
+      "anchor": [
+        -0.008267998695373535,
+        -0.4635944049805403,
+        -0.1353050172328949
+      ],
+      "groupPos": [
+        0,
+        0,
+        0
+      ],
+      "groupRot": [
+        0,
+        0,
+        0
+      ],
+      "groupScl": [
+        1,
+        1,
+        1
+      ],
+      "contentOffset": [
+        0,
+        0,
+        0
+      ],
+      "worldPos": [
+        0,
+        -0.9271888099610806,
+        -0.27061003446578974
+      ],
+      "worldQuat": [
+        1,
+        0,
+        0,
+        6.123233995736766e-17
+      ],
+      "worldScl": [
+        1,
+        1,
+        1
+      ],
+      "splatCount": 280092,
+      "visible": true,
+      "name": "burger_splat.compressed.ply",
+      "file": "burger_splat.compressed.ply"
+    }
+  ],
+  "sceneRoot": {
+    "name": "Scene",
+    "scl": [
+      1,
+      1,
+      1
+    ],
+    "preserveEditorScale": true,
+    "fitMaxDim": 1.5,
+    "animScaleFactor": 1
+  },
+  "vr": {
+    "enabled": true,
+    "stickLocomotion": true,
+    "gestureControl": false,
+    "questProfile": {
+      "lod": true,
+      "lodSplatScale": 1,
+      "splatBudget": 500000
+    }
+  },
+  "gestureBindings": [],
+  "gestureMedia": {
+    "clipBlendFrames": 0,
+    "movieFadeFrames": 0
+  },
+  "arMode": "slam",
+  "experienceHudButton": [],
+  "experienceUi": {
+    "schemaVersion": 3,
+    "hud": {
+      "scoreVisible": false,
+      "scoreLabel": "Score",
+      "livesVisible": false,
+      "livesLabel": "Lives",
+      "title": "",
+      "hint": "",
+      "widgets": {
+        "score": {
+          "normX": 0.5,
+          "normY": 0.1
+        }
+      }
+    },
+    "score": {
+      "initial": 0
+    },
+    "progress": {
+      "persist": false,
+      "storageKey": ""
+    }
+  },
+  "worldPlacement": {
+    "twoFingerRotate": false,
+    "lockGroundPlane": false
+  },
+  "vrTransform": {
+    "positionIncrement": {
+      "x": 0.1,
+      "y": 0.1,
+      "z": 0.1
+    },
+    "rotationIncrement": {
+      "x": 15,
+      "y": 15,
+      "z": 15
+    },
+    "scaleIncrement": 0.1,
+    "scaleMin": 0.001,
+    "scaleMax": 1000
+  },
+  "vrGestureControl": {
+    "enabled": false
+  }
+}

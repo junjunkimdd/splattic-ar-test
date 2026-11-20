@@ -1,0 +1,1960 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>box_robo — World AR</title>
+<style>
+  html,body{margin:0;height:100%;background:#000;color:#fff;font-family:system-ui,sans-serif;overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+  canvas{position:fixed;inset:0;width:100%!important;height:100%!important;display:block;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  #hud{position:fixed;left:0;right:0;bottom:0;padding:12px 56px 12px 12px;padding-bottom:max(12px,env(safe-area-inset-bottom));padding-right:max(56px,calc(12px + env(safe-area-inset-right)));display:flex;align-items:flex-end;justify-content:center;pointer-events:none;z-index:3}
+  #status{margin:0;font-size:14px;opacity:.9;text-align:center;max-width:100%;pointer-events:none}
+  .ar-export-mute-btn{position:fixed;right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));z-index:10130;width:44px;height:44px;min-width:44px;padding:0;border-radius:50%;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.58);color:#fff;cursor:pointer;pointer-events:auto;touch-action:manipulation;display:flex;align-items:center;justify-content:center;box-sizing:border-box;-webkit-tap-highlight-color:transparent;transition:transform .12s ease,background .12s ease,border-color .12s ease,box-shadow .12s ease,color .12s ease}.ar-export-mute-btn[hidden]{display:none!important;visibility:hidden!important;pointer-events:none!important}.ar-export-mute-btn:hover,.ar-export-mute-btn.is-aimed{transform:scale(1.06);background:rgba(20,40,56,.92);border-color:rgba(79,195,255,.85);box-shadow:0 0 0 2px rgba(79,195,255,.35);color:#4fc3ff}.ar-export-mute-btn:focus-visible{outline:2px solid rgba(120,200,120,.75);outline-offset:2px}.ar-export-mute-btn.is-audible{border-color:rgba(120,200,120,.55)}.ar-export-mute-btn.is-audible:hover,.ar-export-mute-btn.is-audible.is-aimed{border-color:rgba(79,195,255,.85)}.ar-export-mute-btn .ar-export-mute-icon{display:flex;align-items:center;justify-content:center;width:100%;height:100%}.ar-export-mute-btn .ar-export-mute-icon svg{width:24px;height:24px;display:block;pointer-events:none}.ar-export-mute-btn .ar-export-mute-icon--on{display:none}.ar-export-mute-btn .ar-export-mute-icon--off{display:flex}.ar-export-mute-btn.is-audible .ar-export-mute-icon--on{display:flex}.ar-export-mute-btn.is-audible .ar-export-mute-icon--off{display:none}.ar-export-mute-btn.is-muted .ar-export-mute-icon--on{display:none}.ar-export-mute-btn.is-muted .ar-export-mute-icon--off{display:flex}.ar-xr-hud:has(.ar-export-mute-btn){padding-right:max(56px,calc(12px + env(safe-area-inset-right)))}.ar-xr-hud:has(.ar-export-mute-btn) .ar-xr-hud-actions{max-width:calc(100vw - 72px)}.ar-xr-hud button.ar-export-mute-btn{flex:none;width:44px;height:44px;min-width:44px;min-height:44px;padding:0;border-radius:50%;font-size:0;line-height:0;white-space:normal;overflow:visible}.ar-export-mute-btn.ar-mute-vp-pinned{right:auto;bottom:auto}
+  button{padding:10px 18px;border-radius:10px;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.55);color:#fff;font-size:14px;cursor:pointer}
+  #startgate{position:fixed;inset:0;z-index:4;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;background:#000;text-align:center}
+  #startgate h1{margin:0;font-size:1.6rem;font-weight:650;letter-spacing:-0.02em}
+  #startgate p{margin:0;max-width:22rem;line-height:1.45;opacity:.92}
+  #startgate button,#headsetmodes button{font-size:16px;padding:14px 28px;background:#fff;color:#111;border:0;font-weight:600;border-radius:10px;min-height:48px;width:100%;box-sizing:border-box}
+  #startgate button:hover,#headsetmodes button:hover{background:#f3f3f3}
+  #startgate button:active,#headsetmodes button:active{background:#e7e7e7}
+  #startgate .alt{margin-top:4px;font-size:13px;opacity:.75}
+  #startgate .alt a{color:#fff}
+  #mode-stack{display:flex;flex-direction:column;align-items:stretch;gap:10px;width:min(12rem,calc(100vw - 48px))}
+  #mode-stack[hidden]{display:none!important}
+  #page-loading{display:flex;flex-direction:column;align-items:center;gap:12px;pointer-events:none}
+  #page-loading[hidden]{display:none!important}
+  #page-loading.is-overlay{position:fixed;inset:0;z-index:10050;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:rgba(0,0,0,.92)}
+  #page-loading.is-overlay #page-loading-ltomoe,#page-loading.is-overlay #page-loading-label{position:relative;z-index:1}
+  #page-loading-ltomoe{width:min(220px,56vw);height:min(220px,56vw);position:relative;display:grid;place-items:center}
+  #page-loading-ltomoe .ltomoe-splat-cloud-loader__canvas{width:100%!important;height:100%!important}
+  #page-loading .ltomoe-splat-cloud-loader .mode-spinner{display:none}
+  .mode-spinner{width:52px;height:52px;border:4px solid rgba(255,255,255,.16);border-top-color:#fff;border-radius:50%;animation:mode-spin .75s linear infinite;box-sizing:border-box;margin:0 auto}
+  @keyframes mode-spin{to{transform:rotate(360deg)}}
+  #page-loading-label{margin:0;font-size:15px;font-weight:650;letter-spacing:.02em;color:rgba(255,255,255,.92)}
+  #headsetmodes{display:flex;flex-direction:column;align-items:stretch;gap:10px;width:100%;pointer-events:auto}
+  #headsetmodes[hidden],#headsetmodes:not(:has(button:not([hidden]))){display:none!important}
+  #headsetmodes button[hidden]{display:none!important}
+  #headsetmodes.is-live{position:fixed;top:auto;left:50%;bottom:max(12px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:6;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:8px;width:max-content;max-width:calc(100vw - 24px - env(safe-area-inset-left) - env(safe-area-inset-right));pointer-events:auto}
+  #headsetmodes.is-live button{width:auto;min-height:0;flex:0 0 auto;padding:10px 18px;font-size:14px;font-weight:400;line-height:1.2;background:rgba(0,0,0,.62);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:10px;white-space:nowrap}
+  #headsetmodes.is-live button:hover{background:rgba(0,0,0,.74)}
+  #headsetmodes.is-live button:active{background:rgba(0,0,0,.84)}
+  body:has(#headsetmodes.is-live) #hud{padding-bottom:max(56px,calc(48px + env(safe-area-inset-bottom)))}
+  .ar-experience-hud-layer{position:fixed;inset:0;z-index:2;pointer-events:none}
+  .ar-experience-hud-btn{position:absolute;transform:translate(-50%,-50%);display:inline-flex;align-items:center;justify-content:center;color:#fff;text-decoration:none;font-weight:600;pointer-events:auto;max-width:min(92vw,4096px);box-sizing:border-box;width:max-content}
+  .ar-experience-hud-layout-bottom{flex-direction:column}
+  .ar-experience-hud-layout-top{flex-direction:column-reverse}
+  .ar-experience-hud-layout-left{flex-direction:row-reverse}
+  .ar-experience-hud-layout-right{flex-direction:row}
+  .ar-experience-hud-btn-icon{width:22px;height:22px;object-fit:contain;flex-shrink:0}
+  .ar-experience-hud-btn-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #exp-xr-dom-overlay{position:fixed;inset:0;z-index:2;pointer-events:none}
+  #exp-xr-dom-overlay .ar-experience-hud-layer{position:absolute;inset:0}
+  .ar-desktop-gesture-help {
+  position: fixed;
+  top: max(10px, env(safe-area-inset-top));
+  left: max(10px, env(safe-area-inset-left));
+  z-index: 10050;
+  pointer-events: none;
+  max-width: min(22rem, calc(100vw - 24px));
+  box-sizing: border-box;
+}
+.ar-desktop-gesture-help[hidden] { display: none !important; }
+.ar-desktop-gesture-help-card {
+  padding: 8px 10px 9px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(0,0,0,.62);
+  color: #fff;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 2px 10px rgba(0,0,0,.35);
+}
+.ar-desktop-gesture-help-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.ar-desktop-gesture-help-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  opacity: 0.92;
+  text-transform: uppercase;
+}
+.ar-desktop-gesture-help-close {
+  pointer-events: auto;
+  flex: 0 0 auto;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin: 0;
+  padding: 0;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,.22);
+  background: rgba(0,0,0,.35);
+  color: #fff;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.ar-desktop-gesture-help-close:hover {
+  background: rgba(255,255,255,.12);
+}
+.ar-desktop-gesture-help-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 12px;
+  line-height: 1.4;
+  text-shadow: 0 1px 3px rgba(0,0,0,.75);
+}
+.ar-desktop-gesture-help-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.4rem;
+}
+.ar-desktop-gesture-help-keys {
+  font-weight: 700;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color: rgba(220, 235, 255, 0.95);
+}
+.ar-desktop-gesture-help-sep {
+  opacity: 0.55;
+}
+.ar-desktop-gesture-help-action {
+  opacity: 0.92;
+}
+</style>
+<script>window.__AR_SPARK_URL="./libs/spark.js";window.__SPLAT_CONVERT_URL="./libs/splat_convert.js";window.__AR_VR_ENABLED=true;window.__AR_VR_GESTURE_CONTROL=false;</script>
+<script>(function(){var shown=false;function show(m){if(shown)return;var el=document.getElementById("status");if(!el)return;shown=true;el.textContent=m||"Load error — see browser console";}function hideLoad(){var p=document.getElementById("page-loading");if(p)p.hidden=true;}window.addEventListener("error",function(e){var m=(e&&e.message)||(e&&e.error&&e.error.message)||"";if(e&&e.target&&(e.target.src||e.target.href))m="Failed to load "+(e.target.src||e.target.href);if(m){show("Load error: "+String(m).slice(0,240));hideLoad();}});window.addEventListener("unhandledrejection",function(e){var r=e&&e.reason;var m=(r&&r.message)||String(r||"");if(m){show("Load error: "+String(m).slice(0,240));hideLoad();}});})();</script>
+<script type="importmap">{
+  "imports": {
+    "three": "./libs/three.module.js",
+    "gltfloader": "./libs/GLTFLoader.js",
+    "bufgeo": "./libs/BufferGeometryUtils.js",
+    "roomenv": "./libs/RoomEnvironment.js",
+    "three/addons/loaders/GLTFLoader.js": "./libs/GLTFLoader.js",
+    "three/examples/jsm/loaders/GLTFLoader.js": "./libs/GLTFLoader.js",
+    "three/addons/environments/RoomEnvironment.js": "./libs/RoomEnvironment.js",
+    "three/examples/jsm/environments/RoomEnvironment.js": "./libs/RoomEnvironment.js",
+    "three/addons/utils/BufferGeometryUtils.js": "./libs/BufferGeometryUtils.js",
+    "three/examples/jsm/utils/BufferGeometryUtils.js": "./libs/BufferGeometryUtils.js"
+  }
+}</script>
+</head>
+<body>
+<canvas id="camerafeed"></canvas>
+<div id="exp-xr-dom-overlay" data-xr-dom-overlay="1"></div>
+<div id="startgate">
+  <h1>AR Experience</h1>
+  <p>On a phone or tablet: real AR — the camera scans a surface. On Quest or Vision Pro: the scene stays in this browser. Enter VR or Enter XR only when you want the headset view.</p>
+  <div id="page-loading" aria-busy="true">
+    <div id="page-loading-ltomoe" aria-hidden="true"><div class="mode-spinner" aria-hidden="true"></div></div>
+    <p id="page-loading-label">Loading...</p>
+  </div>
+  <div id="mode-stack">
+    <button type="button" id="startbtn">AR</button>
+    <div id="headsetmodes"><button type="button" id="vrbtn">VR</button><button type="button" id="xrbtn">XR</button></div>
+  </div>
+  
+</div>
+<div id="hud"><p id="status">Tap Start AR</p></div>
+<button type="button" id="audio" class="ar-export-mute-btn is-muted" aria-label="audio" aria-pressed="true"><span class="ar-export-mute-icon ar-export-mute-icon--on" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path fill="currentColor" d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg></span><span class="ar-export-mute-icon ar-export-mute-icon--off" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path fill="currentColor" d="M3 9v6h4l5 5V4L7 9H3z"/><path fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" d="M15.2 8.2 L21.2 15.8 M21.2 8.2 L15.2 15.8"/></svg></span></button>
+<script type="module">
+
+function detectExportDevice() {
+  var ua = navigator.userAgent || '';
+  var platform = navigator.platform || '';
+  var maxTouch = navigator.maxTouchPoints || 0;
+  var isIPadDesktopUA = (platform === 'MacIntel' || platform === 'Mac') && maxTouch > 1 && !/Windows|CrOS|Linux/i.test(ua);
+  var isIOS = /iP(hone|ad|od)/i.test(ua) || isIPadDesktopUA;
+  var isAndroid = /Android/i.test(ua);
+  var isVision = /VisionOS|visionOS|RealityDevice|Apple\s*Vision/i.test(ua);
+  var isHeadset = /OculusBrowser|\bQuest\b|\bOculus\b/i.test(ua) || isVision;
+  try {
+    var uad = navigator.userAgentData;
+    if (uad && uad.platform === 'Android') isAndroid = true;
+    if (uad && uad.platform === 'iOS') isIOS = true;
+  } catch (e) {}
+  return { isIOS: isIOS, isAndroid: isAndroid, isHeadset: isHeadset, isMobile: isIOS || isAndroid, isDesktop: !(isIOS || isAndroid) && !isHeadset };
+}
+function formatExportArError(err, dev) {
+  dev = dev || detectExportDevice();
+  var m = (err && err.message) ? err.message : String(err || 'Unknown error');
+  if (!window.isSecureContext) {
+    return 'Open over HTTPS (camera requires a secure page — not file://). Upload the unzipped folder to an HTTPS host.';
+  }
+  if (/timed out|Failed to load.*8thwall|Failed to load.*xr/i.test(m)) {
+    return 'Could not load the 8th Wall AR engine — check internet connection and retry.';
+  }
+  if (/camera|permission|NotAllowed|NotReadable|DevicesNotFound/i.test(m)) {
+    if (dev.isAndroid) return 'Camera blocked — allow Camera for this site in Chrome (lock icon in the address bar), then reload.';
+    if (dev.isIOS) return 'Camera blocked — Settings → Safari → Camera → Allow, then reload.';
+    return 'Camera permission denied — allow camera access in browser settings and reload.';
+  }
+  if (/\bFBAN|FBAV|Instagram|Line\/|MicroMessenger/i.test(navigator.userAgent || '')) {
+    return 'In-app browsers often block AR — open this page in Chrome or Safari.';
+  }
+  return m;
+}
+function buildZipSceneContext() {
+  var man = _sceneManifest || {};
+  var lighting = man.lighting || {};
+  // Desktop / Enter VR use buildAREnvironment(envHdr). Without envFile here they
+  // fall back to RoomEnvironment while phone AR correctly loads lighting.envFile.
+  var envFile = lighting.envFile
+    || (lighting.meshLight && lighting.meshLight.envCustom && lighting.meshLight.envCustom.file)
+    || null;
+  return {
+    meshLight: lighting.meshLight,
+    sceneLights: lighting.sceneLights,
+    rendererState: lighting.rendererState,
+    envFile: envFile,
+    background: lighting.background || man.background || null,
+    postFx: lighting.postFx || null,
+    splatEffects: man.splatEffects || null,
+    timeline: man.timeline,
+    useTimeline: man.useTimeline,
+    bakedTimelineAnim: man.bakedTimelineAnim,
+    meshAnim: man.meshAnim || lighting.meshAnim || [],
+    animSpecs: (man.meshes || []).map(function (m) {
+      return { name: m.name, anim: m.anim, animName: m.animName };
+    }),
+    meshesOut: man.meshes,
+    splats: man.splats,
+    uvAnimBakes: (function () {
+      var out = [];
+      for (var i = 0; i < (man.meshes || []).length; i++) {
+        var m = man.meshes[i];
+        for (var j = 0; j < (m.uvAnimBakes || []).length; j++) {
+          var b = m.uvAnimBakes[j];
+          out.push(Object.assign({}, b, { meshName: b.meshName || m.name }));
+        }
+      }
+      return out.length ? out : undefined;
+    })(),
+    arFitMaxDim: AR_FIT_MAX,
+    arSceneRootFitScale: man.sceneRoot && man.sceneRoot.scl,
+    gestureBindings: man.gestureBindings || undefined,
+    onStartBinding: man.onStartBinding || undefined,
+    onFailBinding: man.onFailBinding || undefined,
+    gestureMedia: man.gestureMedia || undefined,
+    experienceHudButton: man.experienceHudButton || undefined,
+    experienceUi: man.experienceUi || undefined,
+    worldPlacement: man.worldPlacement || undefined,
+    vr: man.vr || undefined,
+    particleEmitters: man.particleEmitters || undefined,
+    annotations: man.annotations || undefined,
+    physics: man.physics || undefined,
+    debug: man.debug || undefined,
+    // Gesture Control requires Enter VR/XR. If an older zip enabled both in a
+    // conflicting way, force gesture off when vr.enabled is false.
+    vrGestureControl: (function () {
+      var raw = man.vrGestureControl
+        || (man.vr && man.vr.gestureControl != null ? { enabled: !!man.vr.gestureControl } : null);
+      var vrOn = !(man.vr && man.vr.enabled === false);
+      var gestOn = !!(raw && (raw.enabled === true || raw.enabled === 1 || raw.enabled === '1'
+        || raw.gestureControl === true || man.vr && man.vr.gestureControl));
+      if (!vrOn) gestOn = false;
+      return gestOn || raw ? { enabled: !!gestOn } : undefined;
+    })(),
+    startPreviewMovies: async function (root, opts) {
+      try {
+        if (opts && opts.autoplay === false) _arRuntime?.primeExportedMovies?.();
+        else startExportedMovies();
+      } catch (e) {}
+    },
+    getSceneAudioEntry: function (id) {
+      var lib = (man.timeline && man.timeline.audioLibrary) || [];
+      for (var i = 0; i < lib.length; i++) {
+        var a = lib[i];
+        if (!a || a.id !== id) continue;
+        var src = a.file || a.path || a.src || a.audioDataUrl || null;
+        if (!src) return null;
+        // Resolve zip-relative paths against this page so <audio> / fetch work.
+        try {
+          if (src && !/^(blob:|data:|https?:)/i.test(String(src))) {
+            src = new URL(String(src), document.baseURI || location.href).href;
+          }
+        } catch (eUrl) {}
+        return { id: a.id, src: src, file: a.file || undefined, loop: a.loop !== false, fileName: a.fileName || a.id };
+      }
+      return null;
+    },
+  };
+}
+async function loadExportSceneAssets() {
+  setStatus('Loading Three.js…', 1);
+  THREE = await import('three');
+  window.THREE = THREE;
+  var gltfMod = await import('gltfloader');
+  GLTFLoader = gltfMod.GLTFLoader;
+  setStatus('Loading AR runtime…', 1);
+  var rt = await getExportRuntime();
+  if (typeof rt.AR_EXPORT_FIT_MAX_DIM === 'number' && rt.AR_EXPORT_FIT_MAX_DIM > 0) {
+    AR_FIT_MAX = rt.AR_EXPORT_FIT_MAX_DIM;
+  }
+  setStatus('Loading model…', 1);
+  var loaded = await loadSceneGlb(GLTFLoader);
+  content = loaded.root;
+  _sceneAnimations = loaded.animations || [];
+  setStatus('Applying materials…', 1);
+  await restoreExportedScene(content, THREE);
+  if (_sceneManifest && _sceneManifest.splats && _sceneManifest.splats.length) {
+    setStatus('Loading 3DGS splats…', 1);
+    await loadExportedSplats(content, !!loaded.hasGlb);
+  }
+  if (_sceneManifest && _sceneManifest.fourdgs) {
+    setStatus('Loading 4DGS…', 1);
+    await loadExportedFourDgs();
+  }
+  if (!content.children.length && !_fourDgsCtrl) {
+    var emptyMsg = window.__arFourDgsError
+      ? ('4DGS could not load: ' + window.__arFourDgsError)
+      : ((_sceneManifest && _sceneManifest.fourdgs && _sceneManifest.fourdgs.manifest)
+        ? '4DGS segments missing — place fourdgs/manifest.json and seg_*.4dgs beside index.html (or re-export with segments packed in the AR zip)'
+        : 'No scene.glb or splat files found in this folder');
+    throw new Error(emptyMsg);
+  }
+  setStatus('Applying scene layout…', 1);
+  // World grid origin (editor 0,0,0) sits on the placement fiducial / image anchor.
+  await finalizeExportedLayout(THREE, content, rt, { ground: false });
+  if (_fourDgsCtrl && _fourDgsCtrl.root) {
+    // After the shared fit: the 4DGS sits in editor world space under the Scene / ARScene node,
+    // so it gets the Scene scale, the AR placement and pinch / rotate like the static content.
+    var fdParent = (rt.resolveFitNode && rt.resolveFitNode(THREE, content)) || content;
+    fdParent.add(_fourDgsCtrl.root);
+    content.updateMatrixWorld(true);
+  }
+  try { rt.holdOnStartClipOpeningPose?.(content, _sceneAnimations, buildZipSceneContext()); } catch (e) {}
+  var pe = _sceneManifest && _sceneManifest.particleEmitters;
+  if (pe && pe.length && content) {
+    try {
+      if (!rt.hasARParticles(content)) {
+        rt.attachARParticles(THREE, content, pe, { headsetXR: !!window.__AR_HEADSET_BROWSER });
+        rt.holdARParticlesStartStopped(content, (_sceneManifest.gestureBindings || []));
+      }
+    } catch (peErr) {
+      console.warn('[AR export] particles attach', peErr);
+    }
+  }
+  return rt;
+}
+
+
+const XR8_CDN = "https://cdn.jsdelivr.net/npm/@8thwall/engine-binary@1/dist/xr.js";
+const XREXTRAS_CDN = "https://cdn.jsdelivr.net/npm/@8thwall/xrextras@1/dist/xrextras.js";
+
+function loadScript(src, attrs) {
+  attrs = attrs || {};
+  return new Promise(function (resolve, reject) {
+    if (document.querySelector('script[src="' + src + '"]')) { resolve(); return; }
+    var s = document.createElement('script');
+    s.src = src;
+    s.crossOrigin = 'anonymous';
+    for (var k in attrs) s.setAttribute(k, attrs[k]);
+    s.onload = function () { resolve(); };
+    s.onerror = function () { reject(new Error('Failed to load ' + src)); };
+    document.head.appendChild(s);
+  });
+}
+
+async function loadXR8Stack() {
+  await loadScript(XR8_CDN, { 'data-preload-chunks': 'slam' });
+  await loadScript(XREXTRAS_CDN);
+  if (!window.XRExtras) {
+    await new Promise(function (resolve, reject) {
+      var t = setTimeout(function () { reject(new Error('8th Wall XRExtras timed out')); }, 20000);
+      (function tick() {
+        if (window.XRExtras) { clearTimeout(t); resolve(); return; }
+        requestAnimationFrame(tick);
+      })();
+    });
+  }
+  if (!window.XR8) {
+    await new Promise(function (resolve, reject) {
+      var t = setTimeout(function () { reject(new Error('8th Wall XR8 timed out')); }, 20000);
+      window.addEventListener('xrloaded', function () { clearTimeout(t); resolve(); }, { once: true });
+    });
+  }
+  return { XR8: window.XR8, XRExtras: window.XRExtras };
+}
+
+
+function prepareXR8CameraPassthrough(scene, renderer) {
+  if (scene) {
+    try { scene.fog = null; } catch (e) {}
+    try { scene.background = null; } catch (e) {}
+  }
+  if (!renderer) return;
+  try { renderer.autoClear = true; } catch (e) {}
+  try { renderer.autoClearColor = false; } catch (e) {}
+  try { renderer.autoClearDepth = true; } catch (e) {}
+  try { renderer.setClearColor(0x000000, 0); } catch (e) {}
+}
+
+function prepareStandaloneAr(scene, renderer, content) {
+  if (renderer) {
+    renderer.shadowMap.enabled = true;
+    try {
+      renderer.shadowMap.type = THREE.PCFShadowMap;
+      renderer.shadowMap.autoUpdate = true;
+      renderer.shadowMap.needsUpdate = true;
+    } catch (e) {}
+  }
+  if (content) {
+    content.traverse(function (o) {
+      // Spark SplatMesh — not a triangle mesh; skip shadow flags.
+      if (o.packedSplats) {
+        o.castShadow = false;
+        o.receiveShadow = false;
+        return;
+      }
+      if (!o.isMesh) return;
+      var mat = Array.isArray(o.material) ? o.material[0] : o.material;
+      var isOcc = !!(o.userData && o.userData.occlusion)
+        || !!(mat && (mat.userData && mat.userData.occlusion || mat.colorWrite === false));
+      var catcher = !!(o.userData && o.userData.shadowCatcher)
+        || !!(mat && (mat.isShadowMaterial || (mat.userData && mat.userData.shadowCatcher)));
+      if (isOcc) {
+        o.castShadow = false;
+        o.receiveShadow = false;
+        o.renderOrder = -1000;
+        o.userData = o.userData || {};
+        o.userData.occlusion = true;
+      } else if (catcher) {
+        o.castShadow = false;
+        o.receiveShadow = true;
+        o.renderOrder = 10;
+        o.userData = o.userData || {};
+        o.userData.splatDepthCatcher = true;
+        if (mat && mat.isShadowMaterial) {
+          try {
+            mat.polygonOffset = true;
+            mat.polygonOffsetFactor = -1;
+            mat.polygonOffsetUnits = -1;
+          } catch (e) {}
+        }
+      } else {
+        o.castShadow = true;
+        o.receiveShadow = true;
+      }
+      if (!mat) return;
+      var mapLive = !!(mat.map && (mat.map.isVideoTexture || (mat.map.userData && mat.map.userData.movieVideo)));
+      if (mat.emissiveMap && mat.emissiveMap !== mat.map) {
+        var emitLive = !!(mat.emissiveMap.isVideoTexture || (mat.emissiveMap.userData && mat.emissiveMap.userData.movieVideo));
+        if (mapLive && !emitLive) {
+          mat.emissiveMap = null;
+          try { if (mat.emissive && mat.emissive.setRGB) mat.emissive.setRGB(0, 0, 0); } catch (e) {}
+          mat.emissiveIntensity = 0;
+        }
+      }
+      mat.needsUpdate = true;
+    });
+  }
+  // Do NOT force mapSize / bias / castShadow here — ar-lighting.js applySharedARShadowPipeline
+  // matches Editor AR Preview (softness, quality, bias, Vogel soft-PCF).
+}
+
+
+async function loadSceneGlb(GLTFLoader) {
+  var root = new THREE.Group();
+  root.name = 'ARContent';
+  var animations = [];
+  var hasGlb = false;
+  var scene = null;
+
+  function ensureScene() {
+    if (scene) return scene;
+    scene = new THREE.Group();
+    scene.name = 'Scene';
+    root.add(scene);
+    return scene;
+  }
+
+  function addGltfUnderScene(gltf, wrapName) {
+    ensureScene();
+    var wrap = new THREE.Group();
+    wrap.name = wrapName || 'Mesh';
+    wrap.add(gltf.scene);
+    scene.add(wrap);
+    if (gltf.animations && gltf.animations.length) {
+      animations = animations.concat(gltf.animations);
+    }
+    hasGlb = true;
+  }
+
+  function mergeMeshyChildren(fromRoot) {
+    if (!fromRoot) return;
+    ensureScene();
+    var kids = fromRoot.children ? fromRoot.children.slice() : [];
+    // If fromRoot itself is a Scene with meshes, prefer its children; else the root.
+    if (!kids.length && fromRoot.isMesh) {
+      scene.add(fromRoot);
+      hasGlb = true;
+      return;
+    }
+    for (var k = 0; k < kids.length; k++) {
+      var child = kids[k];
+      if (!child) continue;
+      var hasMesh = false;
+      child.traverse(function (o) { if (o.isMesh) hasMesh = true; });
+      if (!hasMesh) continue;
+      scene.add(child);
+      hasGlb = true;
+    }
+  }
+
+  // scene.json.meshFiles: original per-mesh GLBs and/or catchers.glb companion.
+  var man = null;
+  try {
+    var manResp = await fetch('scene.json', { cache: 'no-store' });
+    if (manResp && manResp.ok) man = await manResp.json();
+  } catch (e) {}
+
+  var list = man && man.meshFiles;
+  var hasCatchersOnly = false;
+  if (list && list.length) {
+    hasCatchersOnly = list.every(function (mf) {
+      var f = String((mf && (mf.file || mf.name)) || '');
+      return /catchers\.glb$/i.test(f) || (mf && mf.name === '__catchers');
+    });
+  }
+
+  // Multi original mesh_*.glb path: load listed files, then merge stub scene.glb.
+  if (list && list.length && !hasCatchersOnly) {
+    try {
+      for (var i = 0; i < list.length; i++) {
+        var mf = list[i];
+        var file = mf.file || mf.name;
+        if (!file) continue;
+        var r = await fetch(file, { cache: 'no-store' }).catch(function () { return null; });
+        if (!r || !r.ok) continue;
+        var buf = await r.arrayBuffer();
+        var gltf = await new GLTFLoader().parseAsync(buf, '');
+        addGltfUnderScene(gltf, mf.name || ('Mesh_' + i));
+      }
+      var stubResp = await fetch('scene.glb', { cache: 'no-store' }).catch(function () { return null; });
+      if (stubResp && stubResp.ok) {
+        var stubBuf = await stubResp.arrayBuffer();
+        if (stubBuf && stubBuf.byteLength > 200) {
+          var stubGltf = await new GLTFLoader().parseAsync(stubBuf, '');
+          mergeMeshyChildren(stubGltf.scene);
+        }
+      }
+      if (hasGlb) return { root: root, animations: animations, hasGlb: true };
+    } catch (e) {
+      console.warn('[AR] meshFiles load failed', e);
+    }
+  }
+
+  // Primary: scene.glb (original character bytes when passthrough succeeded).
+  var resp = await fetch('scene.glb', { cache: 'no-store' }).catch(function () { return null; });
+  if (resp && resp.ok) {
+    var buf2 = await resp.arrayBuffer();
+    var gltf2 = await new GLTFLoader().parseAsync(buf2, '');
+    // Match AR Preview: one shared Scene parent for mesh + splat (not glTF Scene at root).
+    var sceneHost = ensureScene();
+    var gltfScene = gltf2.scene;
+    if (gltfScene) {
+      var gKids = gltfScene.children ? gltfScene.children.slice() : [];
+      for (var gi = 0; gi < gKids.length; gi++) sceneHost.add(gKids[gi]);
+      if (!gKids.length && gltfScene.isMesh) sceneHost.add(gltfScene);
+    }
+    hasGlb = true;
+    if (gltf2.animations && gltf2.animations.length) {
+      animations = animations.concat(gltf2.animations);
+    }
+  }
+
+  // Companion catchers.glb (or meshFiles catchers-only list) — merge without re-encoding character.
+  try {
+    var catcherNames = [];
+    if (hasCatchersOnly && list) {
+      for (var ci = 0; ci < list.length; ci++) {
+        catcherNames.push(list[ci].file || list[ci].name);
+      }
+    } else if (!man) {
+      // scene.json lists every companion; an unlisted catchers.glb is a stale upload.
+      catcherNames.push('catchers.glb');
+    }
+    for (var cj = 0; cj < catcherNames.length; cj++) {
+      var cfile = catcherNames[cj];
+      if (!cfile) continue;
+      var cr = await fetch(cfile, { cache: 'no-store' }).catch(function () { return null; });
+      if (!cr || !cr.ok) continue;
+      var cbuf = await cr.arrayBuffer();
+      if (!cbuf || cbuf.byteLength < 200) continue;
+      var cgltf = await new GLTFLoader().parseAsync(cbuf, '');
+      // Attach under same Scene parent as character when present.
+      var host = root.getObjectByName('Scene') || root.getObjectByName('ARScene') || root;
+      var cKids = (cgltf.scene && cgltf.scene.children) ? cgltf.scene.children.slice() : [];
+      for (var ck = 0; ck < cKids.length; ck++) {
+        var ch = cKids[ck];
+        var hm = false;
+        ch.traverse(function (o) { if (o.isMesh) hm = true; });
+        if (hm) host.add(ch);
+      }
+      hasGlb = true;
+    }
+  } catch (e2) {
+    console.warn('[AR] catchers.glb load failed', e2);
+  }
+
+  return { root: root, animations: animations, hasGlb: !!hasGlb };
+}
+
+
+var _arRuntime = null;
+var _sceneManifest = null;
+var _sceneAnimations = [];
+var _animCtrl = null;
+var _playbackStarted = false;
+var _audioEnabled = false;
+var _splatCtrl = null;
+var _fourDgsCtrl = null;
+async function getArRuntime() {
+  if (!_arRuntime) _arRuntime = await import('./ar-runtime.js');
+  return _arRuntime;
+}
+async function restoreExportedScene(root, THREE) {
+  try {
+    var resp = await fetch('scene.json', { cache: 'no-store' });
+    if (!resp.ok) return null;
+    var manifest = await resp.json();
+    _sceneManifest = manifest;
+    var mod = await getArRuntime();
+    await mod.applySceneManifest(root, manifest, THREE);
+    try { mod.finalizeOcclusionMeshes?.(root); } catch (e) {}
+    return mod;
+  } catch (e) {
+    console.warn('[AR export] scene manifest failed', e);
+    return null;
+  }
+}
+async function loadExportedSplats(root, hasGlb) {
+  var list = _sceneManifest && _sceneManifest.splats;
+  if (!list || !list.length) return null;
+  try {
+    var mod = await getArRuntime();
+    var descriptors = list.map(function (d) {
+      var out = Object.assign({}, d);
+      if (out.file && (!out.url || String(out.url).startsWith('blob:'))) out.url = out.file;
+      return out;
+    });
+    var _sfx = (_sceneManifest && _sceneManifest.splatEffects) || null;
+    var dev = detectExportDevice();
+    var headset = !!(dev.isHeadset || window.__AR_HEADSET_BROWSER);
+    var qp = _sceneManifest && _sceneManifest.vr && _sceneManifest.vr.questProfile;
+    _splatCtrl = await mod.loadSplatsForAR(descriptors, {
+      maxDim: AR_FIT_MAX,
+      normalize: false,
+      splatEffects: _sfx,
+      headsetLod: headset,
+      questProfile: headset ? qp : null,
+    });
+    if (_splatCtrl?.root) root.add(_splatCtrl.root);
+    if (_splatCtrl?.collision) window.__arSplatCollision = _splatCtrl.collision;
+    return _splatCtrl;
+  } catch (e) {
+    console.error('[AR export] splat load failed', e);
+    throw e;
+  }
+}
+async function finalizeExportedLayout(THREE, root, rt, { ground = true } = {}) {
+  if (!root || !rt?.finalizeExportedARContent) return;
+  try {
+    rt.finalizeExportedARContent(THREE, root, _sceneManifest || {}, AR_FIT_MAX, { ground });
+  } catch (e) {
+    console.warn('[AR export] layout finalize failed', e);
+  }
+}
+/** Phase 5: the optional 4DGS (scene.json fourdgs) — ./fourdgs-runtime.js is only in zips that have one. */
+async function loadExportedFourDgs() {
+  var desc = _sceneManifest && _sceneManifest.fourdgs;
+  // Segmented relative delivery uses desc.manifest (no single file/url).
+  // (Do not put backticks in this comment — it lives inside a template string.)
+  if (!desc || !(desc.file || desc.url || desc.manifest)) return null;
+  try {
+    var mod = await import('./fourdgs-runtime.js');
+    var dev = detectExportDevice();
+    var headset = !!(dev.isHeadset || window.__AR_HEADSET_BROWSER);
+    var qp = _sceneManifest && _sceneManifest.vr && _sceneManifest.vr.questProfile;
+    _fourDgsCtrl = await mod.loadFourDgsForAR(desc, {
+      onAudioIntent: function(audible){if(window.__arExportSetAudioAudible)window.__arExportSetAudioAudible(audible);},
+      mobile: !!(dev.isMobile || headset),
+      headset: headset,
+      questProfile: headset ? qp : null,
+      onStatus: function (msg) {
+        setStatus(msg, 1);
+        try {
+          var lab = document.getElementById('page-loading-label');
+          if (lab && msg) lab.textContent = String(msg);
+        } catch (e) {}
+      },
+    });
+    try { _fourDgsCtrl.setMuted(!exportedAudioAudible()); } catch (e) {}
+    window.__arFourDgs = _fourDgsCtrl;
+    return _fourDgsCtrl;
+  } catch (e) {
+    console.error('[AR export] 4DGS load failed', e);
+    window.__arFourDgsError = String((e && e.message) || e);
+    setStatus('4DGS: ' + ((e && e.message) || e), 9);
+    return null;
+  }
+}
+function attachExportedFourDgs(scene, renderer) {
+  if (!_fourDgsCtrl || !scene || !renderer) return;
+  try {
+    _fourDgsCtrl.attach(scene, renderer).then(function (p) {
+      if (!p) return;
+      // Desktop preview frames the camera before the first 4DGS instant is decoded.
+      _fourDgsCtrl.whenDrawn().then(function () {
+        try { if (_desktopCtrl && !window.__arFourDgsFramed) { window.__arFourDgsFramed = true; _desktopCtrl._refitCamera?.(); } } catch (e) {}
+      }).catch(function () {});
+    }).catch(function (e) { console.warn('[AR export] 4DGS attach failed', e); });
+  } catch (e) {
+    console.warn('[AR export] 4DGS attach failed', e);
+  }
+}
+/** splatAttach for DesktopPreview / headset: static splats first, then the 4DGS (shares their SparkRenderer). */
+function exportSplatAttachFn() {
+  var st = _splatCtrl && _splatCtrl.attachSpark ? _splatCtrl.attachSpark : null;
+  if (!_fourDgsCtrl) return st;
+  return function (scene, renderer, opts) {
+    var r;
+    if (st) r = st(scene, renderer, opts);
+    attachExportedFourDgs(scene, renderer);
+    return r;
+  };
+}
+function syncExportedFourDgsMute() {
+  if (!_fourDgsCtrl) return;
+  try { _fourDgsCtrl.setMuted(!exportedAudioAudible()); _fourDgsCtrl.ensureAudio(); } catch (e) {}
+}
+function attachExportedSpark(scene, renderer) {
+  attachExportedFourDgs(scene, renderer);
+  if (!_splatCtrl?.attachSpark || !scene || !renderer) return;
+  try {
+    var dev = detectExportDevice();
+    var headset = !!(dev.isHeadset || window.__AR_HEADSET_BROWSER);
+    var qp = _sceneManifest && _sceneManifest.vr && _sceneManifest.vr.questProfile;
+    _splatCtrl.attachSpark(scene, renderer, {
+      mobileAR: !headset,
+      headsetXR: headset,
+      questProfile: headset ? qp : null,
+    });
+    var mod = _arRuntime;
+    try { mod?.tuneSplatARRenderer?.(renderer, { shadows: true, mobileAR: !headset, headsetXR: headset }); } catch (e) {}
+  } catch (e) {
+    console.warn('[AR export] Spark attach failed', e);
+  }
+}
+function animSpecsFromManifest(manifest) {
+  const baked = manifest?.bakedTimelineAnim === true
+    || manifest?.timeline?.bakedTimelineAnim === true;
+  const tl = manifest?.timeline;
+  const strips = tl?.strips || tl?.mediaStrips || [];
+  const hasGraph = tl?.tracks && Object.entries(tl.tracks).some(([k, tr]) => !k.startsWith('audio:') && tr?.keys?.length);
+  const useTimeline = manifest?.useTimeline === true
+    && (strips.length || hasGraph) && !baked;
+  if (useTimeline) return [];
+  const meshAnim = manifest?.meshAnim || manifest?.lighting?.meshAnim || [];
+  if (meshAnim.length) {
+    const specs = [];
+    for (const m of meshAnim) {
+      const clips = m.clips || [];
+      if (clips.length) {
+        for (const c of clips) {
+          specs.push({ name: m.name, anim: c.idx, animName: c.name || null });
+        }
+      } else if (m.animClip >= 0 || m.animName) {
+        specs.push({ name: m.name, anim: m.animClip, animName: m.animName || null });
+      }
+    }
+    if (specs.length) return specs;
+  }
+  return (manifest && manifest.meshes || []).map(function (m) {
+    return { name: m.name, anim: m.anim, animName: m.animName };
+  });
+}
+function tickExportedScene() {
+  try { if (content) _arRuntime?.tickARPhysics?.(content); } catch (e) {}
+  try { if (content) _arRuntime?.tickARParticles?.(content); } catch (e) {}
+  try { if (content) _arRuntime?.tickARAnnotations?.(content); } catch (e) {}
+  try { if (content) _arRuntime?.tickARTeleport?.(content); } catch (e) {}
+  try { _arRuntime?.tickMovies?.(); } catch (e) {}
+  try { _animCtrl?.tick?.(); } catch (e) {}
+  try {
+    if (content && _arRuntime?.tickARUvAnims && _sceneManifest) {
+      var uvBakes = [];
+      for (var ui = 0; ui < (_sceneManifest.meshes || []).length; ui++) {
+        var um = _sceneManifest.meshes[ui];
+        for (var uj = 0; uj < (um.uvAnimBakes || []).length; uj++) {
+          var ub = um.uvAnimBakes[uj];
+          uvBakes.push(Object.assign({}, ub, { meshName: ub.meshName || um.name }));
+        }
+      }
+      if (uvBakes.length) _arRuntime.tickARUvAnims(content, uvBakes, _sceneManifest.timeline, _sceneManifest.meshes);
+    }
+  } catch (e) {}
+}
+function startExportedMovies() {
+  try { _arRuntime?.startMovies?.(); } catch (e) {}
+  try { _arRuntime?.setMovieAudioEnabled?.(_audioEnabled); } catch (e) {}
+}
+function resolveExportedMovieVideos(mod, root, ref) {
+  if (!mod || !mod.findMovieVideosForRef) return [];
+  var found = mod.findMovieVideosForRef(root, ref) || [];
+  if (found.length) return found;
+  var onStart = _sceneManifest && _sceneManifest.onStartBinding;
+  var label = onStart && onStart.movieLabel;
+  if (label && label !== ref) {
+    found = mod.findMovieVideosForRef(root, label) || [];
+    if (found.length) return found;
+  }
+  return found;
+}
+/** Shared preference for gate + AR + VR + XR (and across Experiences in this tab). */
+var AUDIO_PREF_KEY = 'splattic.arAudioAudible';
+var _audioSessionOn = false;
+var _audioUserMuted = true;
+function readStoredAudioPreference() {
+  try {
+    var v = sessionStorage.getItem(AUDIO_PREF_KEY);
+    if (v === '1') return true;
+    if (v === '0') return false;
+  } catch (e) {}
+  return false;
+}
+function writeStoredAudioPreference(audible) {
+  try { sessionStorage.setItem(AUDIO_PREF_KEY, audible ? '1' : '0'); } catch (e) {}
+}
+function loadExportedAudioPreferenceFlags() {
+  // A new exported page starts silent, regardless of a previous page's preference.
+  _audioSessionOn = false; _audioUserMuted = true;
+}
+function exportedAudioAudible() {
+  return !!_audioSessionOn && !_audioUserMuted;
+}
+function syncAudioButton() {
+  var btn = document.querySelector('.ar-export-mute-btn');
+  if (!btn) return;
+  var muted = !exportedAudioAudible();
+  btn.classList.toggle('is-muted', muted);
+  btn.classList.toggle('is-audible', !muted);
+  btn.setAttribute('aria-label', muted ? 'audio' : 'mute');
+  btn.setAttribute('aria-pressed', muted ? 'true' : 'false');
+  try { btn.hidden = false; } catch (e) {}
+  try { btn.removeAttribute('hidden'); } catch (e) {}
+  try {
+    if (_arRuntime && _arRuntime.syncARAudioMuteIcon) {
+      _arRuntime.syncARAudioMuteIcon(btn, { muted: muted });
+    }
+  } catch (e) {}
+}
+function revealExportAudioMuteButton() {
+  // Same control on the opening gate and inside AR/VR/XR.
+  var btn = document.querySelector('.ar-export-mute-btn');
+  if (!btn) {
+    var wrap = document.createElement('div');
+    wrap.innerHTML = "<button type=\"button\" id=\"audio\" class=\"ar-export-mute-btn is-muted\" aria-label=\"audio\" aria-pressed=\"true\"><span class=\"ar-export-mute-icon ar-export-mute-icon--on\" aria-hidden=\"true\"><svg viewBox=\"0 0 24 24\" focusable=\"false\"><path fill=\"currentColor\" d=\"M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z\"/></svg></span><span class=\"ar-export-mute-icon ar-export-mute-icon--off\" aria-hidden=\"true\"><svg viewBox=\"0 0 24 24\" focusable=\"false\"><path fill=\"currentColor\" d=\"M3 9v6h4l5 5V4L7 9H3z\"/><path fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" d=\"M15.2 8.2 L21.2 15.8 M21.2 8.2 L15.2 15.8\"/></svg></span></button>";
+    btn = wrap.firstElementChild;
+    if (!btn) return;
+    document.body.appendChild(btn);
+  }
+  try { btn.hidden = false; } catch (e) {}
+  try { btn.removeAttribute('hidden'); } catch (e) {}
+  try { btn.style.removeProperty('visibility'); } catch (e) {}
+  try { btn.style.removeProperty('display'); } catch (e) {}
+  syncAudioButton();
+  getArRuntime().then(function (mod) {
+    try { mod.pinARAudioMuteIcon?.(btn); } catch (e) {}
+    try { mod.syncARAudioMuteIcon?.(btn, { muted: !exportedAudioAudible() }); } catch (e) {}
+  }).catch(function () {});
+}
+function markExportAudioHudAutostart() {
+  // Experience became active — keep the shared preference (do not force mute).
+  if (!_audioSessionOn && !_audioUserMuted) _audioSessionOn = true;
+  if (!_audioSessionOn && readStoredAudioPreference()) {
+    _audioSessionOn = true;
+    _audioUserMuted = false;
+  }
+  applyExportedAudioOutput({ skipDesktopCtrl: true });
+}
+function setExportedAudioAudible(audible) {
+  _audioSessionOn = true;
+  _audioUserMuted = !audible;
+  writeStoredAudioPreference(!!audible);
+  applyExportedAudioOutput();
+}
+/** Keep zip audio flags + playback in sync when DesktopPreview movie HUD toggles. */
+globalThis.__arExportSetAudioAudible = function (audible) {
+  _audioSessionOn = true;
+  _audioUserMuted = !audible;
+  writeStoredAudioPreference(!!audible);
+  // Desktop movie HUD already applied gesture/movie/bed — skip re-entry into _desktopCtrl.
+  applyExportedAudioOutput({ skipDesktopCtrl: true });
+  syncAudioButton();
+  syncExportedFourDgsMute();
+};
+globalThis.__arExportGetAudioAudible = function () {
+  return exportedAudioAudible();
+};
+function applyExportedAudioOutput(opts) {
+  var skipDesktop = !!(opts && opts.skipDesktopCtrl);
+  var audible = exportedAudioAudible();
+  _audioEnabled = audible;
+  if (!skipDesktop) {
+    try { _desktopCtrl?.setAudioEnabled?.(audible); } catch (e) {}
+  }
+  try { _animCtrl?.setAudioEnabled?.(audible); } catch (e) {}
+  try { _arRuntime?.setMovieAudioEnabled?.(audible); } catch (e) {}
+  try { _arRuntime?.unlockARGestureAudioSession?.(); } catch (e) {}
+  try { _arRuntime?.unlockARMovieTapAudioContext?.(); } catch (e) {}
+  try { _arRuntime?.setARGestureAudioMuted?.(!audible); } catch (e) {}
+  try {
+    var extraMovies = _arRuntime?.getExportedMovieVideos?.() || [];
+    var movieList = extraMovies.length
+      ? extraMovies
+      : (_arRuntime?.collectARMovieVideosInRoot?.(content) || []);
+    _arRuntime?.setARMovieVideosAudibleInRoot?.(content, audible, extraMovies);
+    // Silence movie duplicates BEFORE starting the bed — never after
+    // (post-start silence used to tear down intentional BGM).
+    _arRuntime?.silenceARGestureAudioMatchingMovies?.(movieList);
+  } catch (e) {}
+  if (audible) {
+    try {
+      var zipAudioCtx = buildZipSceneContext();
+      _arRuntime?.startARBackgroundAudio?.(_sceneManifest && _sceneManifest.onStartBinding, {
+        sceneContext: zipAudioCtx,
+        getSceneAudioEntry: zipAudioCtx.getSceneAudioEntry,
+        getContentRoot: function () { return content; },
+      });
+    } catch (e) {}
+  } else {
+    // Soft pause — keep bed src/position for unmute in this Experience.
+    try { _arRuntime?.pauseARBackgroundAudio?.(); } catch (e) {}
+  }
+  getArRuntime().then(function (mod) {
+    try { mod.unlockARGestureAudioSession?.(); } catch (e) {}
+    try { mod.unlockARMovieTapAudioContext?.(); } catch (e) {}
+    if (mod === _arRuntime) {
+      syncAudioButton();
+      return;
+    }
+    try { mod.setARGestureAudioMuted?.(!audible); } catch (e) {}
+    try {
+      var extraMovies2 = mod.getExportedMovieVideos?.() || [];
+      var movieList2 = extraMovies2.length
+        ? extraMovies2
+        : (mod.collectARMovieVideosInRoot?.(content) || []);
+      mod.setARMovieVideosAudibleInRoot?.(content, audible, extraMovies2);
+      mod.silenceARGestureAudioMatchingMovies?.(movieList2);
+    } catch (e) {}
+    if (audible) {
+      try {
+        var zipAudioCtx2 = buildZipSceneContext();
+        mod.startARBackgroundAudio?.(_sceneManifest && _sceneManifest.onStartBinding, {
+          sceneContext: zipAudioCtx2,
+          getSceneAudioEntry: zipAudioCtx2.getSceneAudioEntry,
+          getContentRoot: function () { return content; },
+        });
+      } catch (e) {}
+    } else {
+      try { mod.pauseARBackgroundAudio?.(); } catch (e) {}
+    }
+    syncAudioButton();
+  }).catch(function () {});
+  syncAudioButton();
+}
+globalThis.__arExportSyncMovieAudio = function () {
+  var aud = exportedAudioAudible();
+  try { _arRuntime?.setMovieAudioEnabled?.(aud); } catch (e) {}
+  try {
+    _arRuntime?.setARMovieVideosAudibleInRoot?.(content, aud, _arRuntime?.getExportedMovieVideos?.());
+  } catch (e) {}
+  try { _arRuntime?.setARGestureAudioMuted?.(!aud); } catch (e) {}
+};
+function setExportedAudioEnabled(on) {
+  setExportedAudioAudible(!!on);
+}
+/**
+ * Hard teardown for full dispose only — do NOT call on Experience-link leave or VR/XR enter.
+ * Shared ON/OFF preference is preserved (sessionStorage).
+ */
+function stopExportedExperiencePlayback(reason) {
+  _audioEnabled = false;
+  try { _desktopCtrl?.setAudioEnabled?.(false); } catch (e) {}
+  try { _animCtrl?.setAudioEnabled?.(false); } catch (e) {}
+  try { _arRuntime?.setMovieAudioEnabled?.(false); } catch (e) {}
+  try { _arRuntime?.setARGestureAudioMuted?.(true); } catch (e) {}
+  try { _arRuntime?.shutdownARExperienceAudio?.(reason || 'dispose'); } catch (e) {}
+  try { _arRuntime?.stopARBackgroundAudio?.(); } catch (e) {}
+  try {
+    _arRuntime?.setARMovieVideosAudibleInRoot?.(content, false, _arRuntime?.getExportedMovieVideos?.());
+  } catch (e) {}
+  try { _desktopCtrl?.syncExperienceAudioFromExport?.(exportedAudioAudible()); } catch (e) {}
+  syncAudioButton();
+}
+/** @deprecated — kept for older call sites; preference is preserved. */
+function shutdownExportedExperienceAudio(reason) {
+  stopExportedExperiencePlayback(reason);
+}
+globalThis.__arExportStopPlaybackKeepPreference = stopExportedExperiencePlayback;
+// No pagehide / leave mute — Experience-link and VR/XR must not force audio OFF.
+loadExportedAudioPreferenceFlags();
+async function startExportedPlayback(root) {
+  if (_playbackStarted || !root) return;
+  _playbackStarted = true;
+  try {
+    var mod = await getArRuntime();
+    if (_animCtrl) {
+      try { _animCtrl.dispose?.(); } catch (e) {}
+      _animCtrl = null;
+    }
+    try { mod.resetARUvAnimClocks?.(root); } catch (e) {}
+    var zipCtx = buildZipSceneContext();
+    zipCtx.setMoviesPlaying = function (on) {
+      if (on) startExportedMovies();
+    };
+    var actionCtx = {
+      getAnimCtrl: function () { return _animCtrl; },
+      getContentRoot: function () { return content; },
+      onPlayMovies: startExportedMovies,
+      getMovieVideosForRef: function (ref) {
+        return resolveExportedMovieVideos(mod, content, ref);
+      },
+      sceneContext: zipCtx,
+    };
+    mod.wireARDefaultActionReplay(zipCtx, actionCtx);
+    _animCtrl = mod.startARPlayback(root, _sceneAnimations || [], zipCtx, {
+      audioEnabled: function () { return !!_audioEnabled; },
+      fourDgsCtrl: _fourDgsCtrl,
+      getFourDgsPlayer: function () { return (_fourDgsCtrl && _fourDgsCtrl.player) || null; },
+    });
+    try { _animCtrl?.setAudioEnabled?.(_audioEnabled); } catch (e) {}
+    try { mod.primeExportedMovies?.(); } catch (e) {}
+    mod.applyARSceneBecomeActive(actionCtx, zipCtx);
+    // Editor viewport / Preview start movies on become-active. Zip Default
+    // Action may miss a movieRef remap — start remaining videos unless Pause.
+    var dc = zipCtx.onStartBinding && String(zipCtx.onStartBinding.defaultCommand || '');
+    if (dc !== 'pauseAction' && dc !== 'pause') startExportedMovies();
+    try {
+      if (globalThis.__arMovieOrientUnpin) globalThis.__arMovieOrientUnpin();
+      globalThis.__arMovieOrientUnpin = mod.armARMovieOrientationRestart?.(function () {
+        return content;
+      });
+    } catch (e) {}
+  } catch (e) {
+    console.warn('[AR export] playback start failed', e);
+  }
+  markExportAudioHudAutostart();
+}
+async function applyExportedLighting(scene, renderer, THREE, contentRoot) {
+  if (!_sceneManifest?.lighting) return { dispose: function () {} };
+  try {
+    var mod = await getArRuntime();
+    var result = await mod.applyExportedLighting(THREE, scene, renderer, _sceneManifest.lighting, contentRoot);
+    try { mod.finalizeOcclusionMeshes?.(contentRoot); } catch (e) {}
+    return result;
+  } catch (e) {
+    console.warn('[AR export] lighting apply failed', e);
+    return { dispose: function () {} };
+  }
+}
+var _exportGestureDispose = null;
+function disposeExportedGestures() {
+  try { if (_exportGestureDispose) _exportGestureDispose(); } catch (e) {}
+  _exportGestureDispose = null;
+}
+async function attachExportedGestures(canvas, opts) {
+  disposeExportedGestures();
+  var list = (_sceneManifest && _sceneManifest.gestureBindings) || [];
+  var hasAnn = !!(_sceneManifest && _sceneManifest.annotations && _sceneManifest.annotations.length);
+  if ((!list.length && !hasAnn) || !canvas) return;
+  try {
+    var mod = await getArRuntime();
+    var zipCtx = buildZipSceneContext();
+    zipCtx.setMoviesPlaying = function (on) {
+      if (on) startExportedMovies();
+      else try { mod.setMovieAudioEnabled?.(false); } catch (e) {}
+    };
+    _exportGestureDispose = mod.attachARGestureBindings({
+      canvas: canvas,
+      bindings: list,
+      isPlaced: (opts && typeof opts.isPlaced === 'function') ? opts.isPlaced : function () { return true; },
+      desktopPointerGestures: !detectExportDevice().isMobile,
+      getAnimCtrl: function () { return _animCtrl; },
+      sceneContext: zipCtx,
+      onPlayMovies: startExportedMovies,
+      getContentRoot: function () { return content; },
+      getMovieVideosForRef: function (ref) {
+        return resolveExportedMovieVideos(mod, content, ref);
+      },
+      ignoreSelector: '#hud, #startgate, #headsetmodes, #mode-stack, #page-loading, #audio, .ar-export-mute-btn, .ar-experience-hud-btn, .ar-experience-hud-layer',
+    });
+  } catch (e) {
+    console.warn('[AR export] gesture bindings failed', e);
+  }
+}
+var _exportExperienceHudDispose = null;
+var _exportExperienceUiDispose = null;
+function disposeExportedExperienceHudButton() {
+  try { if (_exportExperienceHudDispose) _exportExperienceHudDispose(); } catch (e) {}
+  _exportExperienceHudDispose = null;
+  try { if (_exportExperienceUiDispose) _exportExperienceUiDispose(); } catch (e2) {}
+  _exportExperienceUiDispose = null;
+}
+async function attachExportedExperienceHudButton() {
+  disposeExportedExperienceHudButton();
+  try {
+    var mod = await getArRuntime();
+    var parent = null;
+    try {
+      parent = (mod.ensureExperienceHudDomOverlayRoot
+        ? mod.ensureExperienceHudDomOverlayRoot(document)
+        : document.getElementById('exp-xr-dom-overlay')) || null;
+    } catch (eRoot) { parent = null; }
+    var sc = buildZipSceneContext();
+    var cfg = _sceneManifest && _sceneManifest.experienceHudButton;
+    if (cfg && typeof mod.attachExperienceHudButtonOverlay === 'function') {
+      if (typeof mod.isExperienceHudButtonActive !== 'function' || mod.isExperienceHudButtonActive(cfg)) {
+        var mounted = mod.attachExperienceHudButtonOverlay({
+          sceneContext: sc,
+          parent: parent || undefined,
+          baseUrl: './',
+          resolveImageSrc: function (c) {
+            return mod.resolveExperienceHudButtonImageSrc
+              ? mod.resolveExperienceHudButtonImageSrc(c, { baseUrl: './' })
+              : null;
+          },
+          // Do not mute on Experience-link leave — preference stays; next page owns audio.
+        });
+        _exportExperienceHudDispose = mounted && mounted.dispose ? mounted.dispose.bind(mounted) : null;
+      }
+    }
+    if (sc && sc.experienceUi && typeof mod.attachExperienceUiOverlay === 'function') {
+      var uiMounted = mod.attachExperienceUiOverlay(sc, { parent: parent || undefined });
+      try { sc._experienceUiOverlayHost = uiMounted; } catch (eHost) {}
+      _exportExperienceUiDispose = uiMounted && uiMounted.remove ? uiMounted.remove.bind(uiMounted) : null;
+    }
+  } catch (e) {
+    console.warn('[AR export] experience HUD / UI failed', e);
+  }
+}
+
+
+function exportPageLoadingOverlayEnabled() {
+  var dev = detectExportDevice();
+  return !dev.isMobile || dev.isHeadset;
+}
+function suppressMobilePageLoadingIfDisabled() {
+  if (exportPageLoadingOverlayEnabled()) return;
+  var el = document.getElementById('page-loading');
+  if (!el) return;
+  el.hidden = true;
+  el.setAttribute('aria-busy', 'false');
+}
+suppressMobilePageLoadingIfDisabled();
+
+var __exportGestureHelpLines = [{"keys":"W / A / S / D","action":"Swipe up / left / down / right"},{"keys":"Click","action":"Tap"}];
+var _exportDesktopGestureHelpDispose = null;
+function disposeExportDesktopGestureHelp() {
+  try { if (_exportDesktopGestureHelpDispose) _exportDesktopGestureHelpDispose(); } catch (e) {}
+  _exportDesktopGestureHelpDispose = null;
+}
+function attachExportDesktopGestureHelpFallback() {
+  if (!detectExportDevice().isDesktop) return;
+  if (document.querySelector('.ar-desktop-gesture-help')) return;
+  var root = document.createElement('div');
+  root.className = 'ar-desktop-gesture-help';
+  root.setAttribute('role', 'note');
+  root.setAttribute('aria-label', 'Desktop gesture shortcuts');
+  var bodyHtml = __exportGestureHelpLines.map(function (row) {
+    return '<div class="ar-desktop-gesture-help-row">'
+      + '<span class="ar-desktop-gesture-help-keys">' + row.keys + '</span>'
+      + '<span class="ar-desktop-gesture-help-sep">—</span>'
+      + '<span class="ar-desktop-gesture-help-action">' + row.action + '</span>'
+      + '</div>';
+  }).join('');
+  root.innerHTML = '<div class="ar-desktop-gesture-help-card">'
+    + '<div class="ar-desktop-gesture-help-head">'
+    + '<span class="ar-desktop-gesture-help-title">Desktop gestures</span>'
+    + '<button type="button" class="ar-desktop-gesture-help-close" aria-label="Dismiss gesture help" title="Dismiss">×</button>'
+    + '</div><div class="ar-desktop-gesture-help-body">' + bodyHtml + '</div></div>';
+  try {
+    if (sessionStorage.getItem('ar-desktop-gesture-help-dismissed') === '1') root.hidden = true;
+  } catch (e) {}
+  var closeBtn = root.querySelector('.ar-desktop-gesture-help-close');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      root.hidden = true;
+      try { sessionStorage.setItem('ar-desktop-gesture-help-dismissed', '1'); } catch (err) {}
+    });
+  }
+  document.body.appendChild(root);
+  _exportDesktopGestureHelpDispose = function () {
+    try { root.remove(); } catch (e) {}
+  };
+}
+async function ensureExportDesktopGestureHelp(rt) {
+  if (!detectExportDevice().isDesktop) return;
+  if (document.querySelector('.ar-desktop-gesture-help')) return;
+  disposeExportDesktopGestureHelp();
+  try {
+    if (rt && typeof rt.attachARDesktopGestureHelpIfDesktop === 'function') {
+      var h = rt.attachARDesktopGestureHelpIfDesktop();
+      if (h && typeof h.dispose === 'function') {
+        _exportDesktopGestureHelpDispose = h.dispose.bind(h);
+        return;
+      }
+    }
+  } catch (e) {
+    console.warn('[AR export] runtime gesture help failed', e);
+  }
+  attachExportDesktopGestureHelpFallback();
+}
+function xrSessionFeatures(mode) {
+  var feats = ['local-floor', 'bounded-floor', 'hand-tracking'];
+  if (mode === 'immersive-ar') feats.push('dom-overlay', 'hit-test', 'plane-detection');
+  else feats.push('layers');
+  return feats;
+}
+function xrSessionInit(mode) {
+  var init = { optionalFeatures: xrSessionFeatures(mode) };
+  if (mode === 'immersive-ar') {
+    var root = document.getElementById('exp-xr-dom-overlay') || document.body;
+    init.domOverlay = { root: root };
+  }
+  return init;
+}
+async function preloadHeadsetExportParticles(rt) {
+  if (!window.__AR_HEADSET_BROWSER || !content) return;
+  var manifest = _sceneManifest || {};
+  var emitters = manifest.particleEmitters;
+  if (!emitters || !emitters.length) return;
+  try {
+    await rt.preloadARParticleTextures(THREE, emitters);
+    if (!rt.hasARParticles(content)) {
+      rt.attachARParticles(THREE, content, emitters, { headsetXR: true });
+      rt.holdARParticlesStartStopped(content, manifest.gestureBindings || []);
+    }
+  } catch (e) {
+    console.warn('[AR export] headset particle preload', e);
+  }
+}
+async function warmHeadsetParticleShaders(rt) {
+  if (!window.__headsetRenderer || !content || !rt.warmARParticleShaders) return;
+  try { await rt.warmARParticleShaders(window.__headsetRenderer, content); } catch (e) {}
+}
+var _headsetBoot = null;
+function bootHeadsetGl() {
+  if (_headsetBoot) return _headsetBoot;
+  var startBtn = document.getElementById('startbtn');
+  if (startBtn) startBtn.disabled = true;
+  _headsetBoot = (async function () {
+    try {
+      var rt = await loadExportSceneAssets();
+      await preloadHeadsetExportParticles(rt);
+      if (!window.__headsetRenderer && typeof THREE !== 'undefined' && THREE.WebGLRenderer) {
+        var renderer = new THREE.WebGLRenderer({
+          canvas: canvas,
+          // WebXR: no MSAA when the scene has splats (Spark: splats gain nothing
+          // from MSAA and it is expensive on Quest / standalone headsets). glTF-only
+          // scenes keep MSAA. Same policy as DesktopPreviewSession.
+          antialias: !(_sceneManifest && _sceneManifest.splats && _sceneManifest.splats.length),
+          alpha: true,
+        });
+        renderer.xr.enabled = true;
+        var htDpr = Math.min(window.devicePixelRatio || 1, 1.25);
+        renderer.setPixelRatio(window.__AR_HEADSET_BROWSER ? htDpr : Math.min(window.devicePixelRatio || 1, 2));
+        var w = canvas.clientWidth || window.innerWidth || 1280;
+        var h = canvas.clientHeight || window.innerHeight || 720;
+        renderer.setSize(w, h, false);
+        var gl = renderer.getContext && renderer.getContext();
+        if (gl && gl.makeXRCompatible) await gl.makeXRCompatible();
+        window.__headsetRenderer = renderer;
+      }
+      await warmHeadsetParticleShaders(rt);
+      window.__headsetRuntime = rt;
+      return window.__headsetRenderer;
+    } finally {
+      if (startBtn) startBtn.disabled = false;
+    }
+  })();
+  return _headsetBoot;
+}
+async function startHeadsetXR(mode) {
+  var _xrLoadingHud = null;
+  if (window.__AR_VR_ENABLED === false) return;
+  var sessionInit = xrSessionInit(mode);
+  if (mode === 'immersive-ar') {
+    try {
+      var root = sessionInit.domOverlay && sessionInit.domOverlay.root;
+      void attachExportedExperienceHudButton();
+      // Re-parent the HUD layer into the DOM Overlay root when present.
+      if (root) {
+        var layer = document.querySelector('.ar-experience-hud-layer');
+        if (layer && layer.parentElement !== root) root.appendChild(layer);
+      }
+    } catch (eHud) {}
+  }
+  var sessionPromise = (navigator.xr && navigator.xr.requestSession)
+    ? navigator.xr.requestSession(mode, sessionInit)
+    : Promise.reject(new Error('WebXR is not available in this browser'));
+  // three.js only connects a controller when it hears inputsourceschange.
+  // Quest fires that once, as a task after requestSession resolves. Listen in
+  // this microtask, before any load await, or the controllers never attach.
+  sessionPromise = sessionPromise.then(function (session) {
+    function remember() {
+      var list = [];
+      var srcs = session.inputSources;
+      if (srcs) {
+        for (var i = 0; i < srcs.length; i++) if (srcs[i]) list.push(srcs[i]);
+      }
+      session.__svInputSources = list;
+    }
+    session.addEventListener('inputsourceschange', remember);
+    try {
+      session.requestReferenceSpace('viewer').then(function (space) {
+        if (space) session.__svViewerSpace = space;
+      }).catch(function () {});
+    } catch (err) {}
+    remember();
+    return session;
+  });
+  var vrBtn = document.getElementById('vrbtn');
+  var xrBtn = document.getElementById('xrbtn');
+  if (vrBtn) vrBtn.hidden = true;
+  if (xrBtn) xrBtn.hidden = true;
+  hideStartGate();
+  updatePageLoadingLabel(mode === 'immersive-ar' ? 'Loading XR…' : 'Loading VR…');
+  var _xrLoadOk = false;
+  var _xrLoadHudRaf = 0;
+  function pumpXrLoadingHud() {
+    if (!_xrLoadingHud) return;
+    try {
+      var r = window.__headsetRenderer;
+      var cam = _desktopCtrl && _desktopCtrl._camera;
+      if (_xrLoadingHud.follow) _xrLoadingHud.follow(r, cam);
+      if (_xrLoadingHud.tick) _xrLoadingHud.tick();
+    } catch (pumpErr) {}
+    _xrLoadHudRaf = requestAnimationFrame(pumpXrLoadingHud);
+  }
+  function stopXrLoadingHud() {
+    if (_xrLoadHudRaf) cancelAnimationFrame(_xrLoadHudRaf);
+    _xrLoadHudRaf = 0;
+    try { _xrLoadingHud && _xrLoadingHud.dispose && _xrLoadingHud.dispose(); } catch (e) {}
+    _xrLoadingHud = null;
+  }
+  try {
+    var session = await sessionPromise;
+    var rt = window.__headsetRuntime || await loadExportSceneAssets();
+    await preloadHeadsetExportParticles(rt);
+    if (!_desktopCtrl) {
+      setStatus(mode === 'immersive-ar' ? 'Starting XR…' : 'Starting VR…', 1);
+      updatePageLoadingLabel(mode === 'immersive-ar' ? 'Loading XR scene…' : 'Loading VR scene…');
+      _desktopCtrl = await rt.startZipDesktopPreview({
+        canvas: canvas,
+        content: content,
+        animations: _sceneAnimations,
+        sceneContext: buildZipSceneContext(),
+        splatAttach: exportSplatAttachFn(),
+        skipWebcam: true,
+        renderer: window.__headsetRenderer || null,
+        onStatus: function (msg) {
+          setStatus(msg, 5);
+          updatePageLoadingLabel(msg);
+        },
+      });
+    }
+    try {
+      if (_desktopCtrl && _desktopCtrl._scene && rt.attachARLoadingHudXr) {
+        _xrLoadingHud = rt.attachARLoadingHudXr(THREE, _desktopCtrl._scene, {
+          label: mode === 'immersive-ar' ? 'Loading XR…' : 'Loading VR…',
+        });
+        if (_xrLoadingHud) pumpXrLoadingHud();
+      }
+    } catch (loadHudErr) {
+      console.warn('[AR export] XR loading hud', loadHudErr);
+    }
+    try {
+      if (_xrLoadingHud && _xrLoadingHud.setLabel) _xrLoadingHud.setLabel('Loading scene…');
+      updatePageLoadingLabel('Loading scene…');
+      await rt.waitHeadsetSceneReady({
+        content: content,
+        scene: _desktopCtrl && _desktopCtrl._scene,
+        sceneContext: buildZipSceneContext(),
+      });
+    } catch (readyErr) {
+      console.warn('[AR export] headset scene ready', readyErr);
+    }
+    try {
+      if (window.__headsetRenderer && rt.setSplatDepthPassHeadsetPresenting) {
+        rt.setSplatDepthPassHeadsetPresenting(window.__headsetRenderer, true);
+      }
+    } catch (depthModeErr) {}
+    window.__headsetSession = session;
+    session.addEventListener('end', function () {
+      if (window.__headsetSession !== session) return;
+      window.__headsetSession = null;
+      try {
+        if (window.__headsetRenderer && rt.setSplatDepthPassHeadsetPresenting) {
+          rt.setSplatDepthPassHeadsetPresenting(window.__headsetRenderer, false);
+        }
+      } catch (depthOffErr) {}
+      stopXrLoadingHud();
+      showStartGate();
+      var startBtn = document.getElementById('startbtn');
+      if (startBtn) startBtn.disabled = false;
+      restoreHeadsetButtons();
+    });
+    await _desktopCtrl.enterXR({ mode: mode, session: session });
+    try {
+      if (_xrLoadingHud && _xrLoadingHud.setLabel) _xrLoadingHud.setLabel('Preparing playback…');
+      updatePageLoadingLabel('Preparing playback…');
+      await holdPageLoadingUntilPlaybackStable();
+    } catch (stableErr) {}
+    try {
+      if (rt.ensureARParticlesPlayback) rt.ensureARParticlesPlayback(content);
+      if (rt.logARParticlesDiagnostic) rt.logARParticlesDiagnostic(content, _desktopCtrl._scene, window.__headsetRenderer);
+    } catch (partPlayErr) {
+      console.warn('[AR export] XR particle playback', partPlayErr);
+    }
+    setStatus(mode === 'immersive-ar'
+      ? 'XR passthrough — hold a trigger to grab the dynamic object, release to throw'
+      : 'VR — hold a trigger to grab the dynamic object, release to throw', 4);
+    _xrLoadOk = true;
+    stopXrLoadingHud();
+  } catch (e) {
+    stopXrLoadingHud();
+    sessionPromise.then(function (s) { try { s.end(); } catch (err) {} }).catch(function () {});
+    console.error('[AR export xr]', e);
+    setStatus('Could not start VR: ' + (e && e.message ? e.message : e), 9);
+    showStartGate();
+    restoreHeadsetButtons();
+  } finally {
+    if (!_xrLoadOk) stopXrLoadingHud();
+    endAllPageLoading();
+  }
+}
+var _headsetSupport = null;
+function restoreHeadsetButtons() {
+  var stack = document.getElementById('mode-stack');
+  var vrBtn = document.getElementById('vrbtn');
+  var xrBtn = document.getElementById('xrbtn');
+  if (_headsetSupport && vrBtn) vrBtn.hidden = !_headsetSupport[0];
+  if (_headsetSupport && xrBtn) xrBtn.hidden = !_headsetSupport[1];
+  if (stack) stack.hidden = false;
+}
+function bindHeadsetModeButtons() {
+  var vrBtn = document.getElementById('vrbtn');
+  var xrBtn = document.getElementById('xrbtn');
+  if (vrBtn && vrBtn.dataset.bound !== '1') {
+    vrBtn.dataset.bound = '1';
+    vrBtn.addEventListener('click', function () { startHeadsetXR('immersive-vr'); });
+  }
+  if (xrBtn && xrBtn.dataset.bound !== '1') {
+    xrBtn.dataset.bound = '1';
+    xrBtn.addEventListener('click', function () { startHeadsetXR('immersive-ar'); });
+  }
+}
+function applyHeadsetModeSupport(vrOk, xrOk) {
+  var vrBtn = document.getElementById('vrbtn');
+  var xrBtn = document.getElementById('xrbtn');
+  if (vrBtn) vrBtn.hidden = !vrOk;
+  if (xrBtn) xrBtn.hidden = !xrOk;
+}
+async function revealHeadsetButtons() {
+  bindHeadsetModeButtons();
+  beginPageLoading('Loading...', 0);
+  try {
+    if (window.__AR_VR_ENABLED === false || !navigator.xr || !window.isSecureContext) {
+      applyHeadsetModeSupport(false, false);
+      return;
+    }
+    var manP = fetch('scene.json', { cache: 'no-store' }).then(function (r) {
+      return r.ok ? r.json() : null;
+    }).catch(function () { return null; });
+    var supportP = Promise.all([
+      navigator.xr.isSessionSupported('immersive-vr').catch(function () { return false; }),
+      navigator.xr.isSessionSupported('immersive-ar').catch(function () { return false; }),
+    ]);
+    var settled = await Promise.all([manP, supportP]);
+    var man = settled[0];
+    var ok = settled[1];
+    if (man && man.vr && man.vr.enabled === false) {
+      applyHeadsetModeSupport(false, false);
+      return;
+    }
+    _headsetSupport = ok;
+    if (detectExportDevice().isHeadset) {
+      try { await bootHeadsetGl(); } catch (e) { console.warn('[AR export] headset GL', e); }
+    }
+    applyHeadsetModeSupport(!!ok[0], !!ok[1]);
+  } catch (e) {
+    console.warn('[AR export] entry buttons', e);
+  } finally {
+    endPageLoading();
+  }
+}
+
+var statusEl = document.getElementById('status');
+var canvas = document.getElementById('camerafeed');
+var startGate = document.getElementById('startgate');
+var camReady = false;
+var statusRank = 0;
+var _desktopCtrl = null;
+function setStatus(msg, rank) {
+  if (rank != null && rank < statusRank) return;
+  if (rank != null) statusRank = rank;
+  if (statusEl) statusEl.textContent = msg || '';
+}
+function parkHeadsetModes(live) {
+  var modes = document.getElementById('headsetmodes');
+  if (!modes) return;
+  if (live) {
+    if (modes.parentElement !== document.body) document.body.appendChild(modes);
+    modes.classList.add('is-live');
+    return;
+  }
+  modes.classList.remove('is-live');
+  var stack = document.getElementById('mode-stack');
+  if (stack && modes.parentElement !== stack) stack.appendChild(modes);
+}
+var _pageLoadDepth = 0;
+var _pageLoadTimers = [];
+var _pageLoadLTomoe = null;
+function ensurePageLoadingSpinner(host) {
+  if (!host) return;
+  if (host.querySelector('.mode-spinner, .ltomoe-splat-cloud-loader__canvas')) return;
+  var spin = document.createElement('div');
+  spin.className = 'mode-spinner';
+  spin.setAttribute('aria-hidden', 'true');
+  host.appendChild(spin);
+}
+function mountPageLoadingLTomoe() {
+  // Optional particle animation omitted for minimal GitHub Pages AR test.
+  // Keep the existing built-in spinner instead.
+  ensurePageLoadingSpinner(document.getElementById('page-loading-ltomoe'));
+}
+function destroyPageLoadingLTomoe() {
+  var host = document.getElementById('page-loading-ltomoe');
+  try { _pageLoadLTomoe && _pageLoadLTomoe.destroy && _pageLoadLTomoe.destroy(); } catch (e) {}
+  _pageLoadLTomoe = null;
+  ensurePageLoadingSpinner(host);
+}
+function beginPageLoading(label, delayMs) {
+  if (!exportPageLoadingOverlayEnabled()) return;
+  _pageLoadDepth++;
+  var wait = delayMs > 0 ? delayMs : 0;
+  // Kick LTomoe immediately so the circle is animating before the delayed show.
+  if (wait === 0) mountPageLoadingLTomoe();
+  _pageLoadTimers.push(setTimeout(function () {
+    if (_pageLoadDepth <= 0) return;
+    var el = document.getElementById('page-loading');
+    var lab = document.getElementById('page-loading-label');
+    if (lab) lab.textContent = label || 'Loading...';
+    if (!el) return;
+    var gate = document.getElementById('startgate');
+    var stack = document.getElementById('mode-stack');
+    var gateHidden = gate && gate.style.display === 'none';
+    if (gateHidden) {
+      if (el.parentElement !== document.body) document.body.appendChild(el);
+      el.classList.add('is-overlay');
+    } else if (stack && stack.parentElement) {
+      if (el.parentElement !== stack.parentElement) stack.parentElement.insertBefore(el, stack);
+      el.classList.remove('is-overlay');
+    }
+    el.hidden = false;
+    el.setAttribute('aria-busy', 'true');
+    mountPageLoadingLTomoe();
+  }, wait));
+}
+function endPageLoading() {
+  if (_pageLoadDepth <= 0) return;
+  _pageLoadDepth--;
+  if (_pageLoadDepth > 0) return;
+  for (var i = 0; i < _pageLoadTimers.length; i++) clearTimeout(_pageLoadTimers[i]);
+  _pageLoadTimers = [];
+  destroyPageLoadingLTomoe();
+  var el = document.getElementById('page-loading');
+  if (!el) return;
+  el.hidden = true;
+  el.setAttribute('aria-busy', 'false');
+}
+function updatePageLoadingLabel(label) {
+  var lab = document.getElementById('page-loading-label');
+  if (lab && label) lab.textContent = String(label);
+}
+function endAllPageLoading() {
+  var guard = 0;
+  while (_pageLoadDepth > 0 && guard < 32) {
+    endPageLoading();
+    guard++;
+  }
+}
+// fourdgs-runtime segment swaps (and other long waits) call these when the overlay is needed mid-session.
+window.__arBeginPageLoading = beginPageLoading;
+window.__arEndPageLoading = endPageLoading;
+window.__arUpdatePageLoadingLabel = updatePageLoadingLabel;
+window.__arEndAllPageLoading = endAllPageLoading;
+async function holdPageLoadingUntilPlaybackStable() {
+  var ctrl = window.__arFourDgs || window.__htmlFourDgs;
+  if (ctrl && typeof ctrl.whenPlaybackStable === 'function') {
+    var lab = document.getElementById('page-loading-label');
+    if (lab) lab.textContent = 'Preparing playback…';
+    try { await ctrl.whenPlaybackStable({ failsafeMs: 30000 }); } catch (e) {}
+    return;
+  }
+  var mobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '');
+  var maxDt = mobile ? 220 : 120;
+  var minGood = mobile ? 2 : 4;
+  var minStable = mobile ? 500 : 1200;
+  await new Promise(function (resolve) {
+    var good = 0, since = null, last = null, raf = 0, done = false;
+    var fin = function () { if (done) return; done = true; if (raf) cancelAnimationFrame(raf); clearTimeout(to); resolve(); };
+    var to = setTimeout(fin, 30000);
+    var tick = function (now) {
+      try { tickExportedScene(); } catch (e) {}
+      var dt = last == null ? 16 : now - last;
+      last = now;
+      if (dt > 0 && dt < maxDt) {
+        good++;
+        if (since == null) since = now;
+        if (good >= minGood && now - since >= minStable) { fin(); return; }
+      } else { good = 0; since = null; }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+  });
+}
+function backgroundPageLoadingWarmup() {
+  void holdPageLoadingUntilPlaybackStable().catch(function () {});
+}
+/** Hide zip loading overlay once the camera feed / next AR step is up — not after tracking or playback warmup. */
+function finishPageLoadingSceneReady() {
+  endPageLoading();
+  if (exportPageLoadingOverlayEnabled()) backgroundPageLoadingWarmup();
+}
+var _gateControllerHelp = null;
+function disposeGateControllerHelp() {
+  try { _gateControllerHelp?.dispose?.(); } catch (e) {}
+  _gateControllerHelp = null;
+  try {
+    document.querySelectorAll('.ar-controller-help').forEach(function (el) { el.remove(); });
+  } catch (e) {}
+}
+function attachGateControllerHelp() {
+  // "?" help only on the opening page (top-right) — not on AR/VR/XR screens.
+  getArRuntime().then(function (mod) {
+    if (!startGate || startGate.style.display === 'none') return;
+    if (typeof mod.attachControllerHelpSheet !== 'function') return;
+    disposeGateControllerHelp();
+    try { _gateControllerHelp = mod.attachControllerHelpSheet(); } catch (e) {}
+  }).catch(function () {});
+}
+function hideStartGate() {
+  if (startGate) startGate.style.display = 'none';
+  try { _desktopCtrl && _desktopCtrl.resumePreview && _desktopCtrl.resumePreview(); } catch (e) {}
+  disposeGateControllerHelp();
+  parkHeadsetModes(true);
+  beginPageLoading('Loading...', 0);
+  revealExportAudioMuteButton();
+  // Re-apply shared preference as the Experience becomes active.
+  try { applyExportedAudioOutput({ skipDesktopCtrl: true }); } catch (e) {}
+}
+function showStartGate() {
+  parkHeadsetModes(false);
+  if (startGate) startGate.style.display = '';
+  try { _desktopCtrl && _desktopCtrl.suspendPreview && _desktopCtrl.suspendPreview(); } catch (e) {}
+  // Keep the same mute control visible on the opening page.
+  revealExportAudioMuteButton();
+  syncAudioButton();
+  attachGateControllerHelp();
+}
+revealHeadsetButtons();
+revealExportAudioMuteButton();
+attachGateControllerHelp();
+window.__arExportMarkAudioStarted = markExportAudioHudAutostart;
+function exportHearAudioNowSync(mod) {
+  var hear = false;
+  try {
+    if (mod && mod.isARGestureBackgroundBedAudible && mod.isARGestureBackgroundBedAudible()) hear = true;
+  } catch (e) {}
+  if (exportedAudioAudible()) hear = true;
+  return hear;
+}
+var _exportAudioTapLock = 0;
+function onExportAudioTap() {
+  var now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+  if (now - _exportAudioTapLock < 320) return;
+  _exportAudioTapLock = now;
+  try { _arRuntime?.unlockARGestureAudioSession?.(); } catch (e) {}
+  try { _arRuntime?.unlockARMovieTapAudioContext?.(); } catch (e) {}
+  var next = (_arRuntime && _arRuntime.nextArAudioHudTapState)
+    ? _arRuntime.nextArAudioHudTapState({ audioSessionOn: _audioSessionOn, userMuted: _audioUserMuted })
+    : { audioSessionOn: true, userMuted: !_audioSessionOn ? false : !_audioUserMuted };
+  _audioSessionOn = !!next.audioSessionOn;
+  _audioUserMuted = !!next.userMuted;
+  writeStoredAudioPreference(exportedAudioAudible());
+  applyExportedAudioOutput();
+  syncExportedFourDgsMute();
+  // Keep DesktopPreview / XR 3D chrome aligned with the shared preference.
+  try { _desktopCtrl?.syncExperienceAudioFromExport?.(exportedAudioAudible()); } catch (e) {}
+  if (!_arRuntime) {
+    getArRuntime().then(function () { applyExportedAudioOutput(); }).catch(function () {});
+  }
+}
+(function wireExportAudioButton() {
+  // One mute control for the opening gate and AR/VR/XR (same preference).
+  // Prefer the movie-HUD bind inside preview; fall back to export tap if unbound.
+  function getMuteBtn() { return document.querySelector('.ar-export-mute-btn'); }
+  function exportMutePoint(e) {
+    if (e && isFinite(e.clientX) && isFinite(e.clientY)) return { x: e.clientX, y: e.clientY };
+    var t = e && (e.changedTouches && e.changedTouches[0] || e.touches && e.touches[0]);
+    if (t && isFinite(t.clientX) && isFinite(t.clientY)) return { x: t.clientX, y: t.clientY };
+    return null;
+  }
+  function exportMuteHits(e) {
+    var btn = getMuteBtn();
+    if (!btn || !e) return false;
+    // Hidden / zero-size mute must not capture canvas gestures (rect → 0,0 + pad).
+    try {
+      if (btn.hidden) return false;
+      var cs = (typeof getComputedStyle === 'function') ? getComputedStyle(btn) : null;
+      if (cs && (cs.display === 'none' || cs.visibility === 'hidden' || cs.pointerEvents === 'none')) return false;
+    } catch (errHide) {}
+    try {
+      if (e.target === btn || (btn.contains && btn.contains(e.target))) return true;
+    } catch (err) {}
+    var pt = exportMutePoint(e);
+    if (!pt) return false;
+    try {
+      var r = btn.getBoundingClientRect();
+      if (!(r.width > 0) || !(r.height > 0)) return false;
+      var pad = 12;
+      return pt.x >= r.left - pad && pt.x <= r.right + pad && pt.y >= r.top - pad && pt.y <= r.bottom + pad;
+    } catch (err2) { return false; }
+  }
+  function onExportMutePointer(e) {
+    var btn = getMuteBtn();
+    // wireARMovieHud / bindARAudioMuteButton already owns this button.
+    if (!btn || btn._arMuteTapUnbind) return;
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    if (!exportMuteHits(e)) return;
+    try { e.preventDefault(); } catch (err) {}
+    try { e.stopPropagation(); } catch (err) {}
+    onExportAudioTap(e);
+  }
+  document.addEventListener('pointerdown', onExportMutePointer, { capture: true, passive: false });
+  document.addEventListener('touchstart', onExportMutePointer, { capture: true, passive: false });
+  function tryPinMute() {
+    var btn = getMuteBtn();
+    if (!btn) return false;
+    getArRuntime().then(function (mod) {
+      try { mod.pinARAudioMuteIcon?.(btn); } catch (e) {}
+    }).catch(function () {});
+    return true;
+  }
+  var pinTries = 0;
+  var pinTimer = setInterval(function () {
+    pinTries += 1;
+    if (tryPinMute() || pinTries > 48) clearInterval(pinTimer);
+  }, 250);
+})();
+syncAudioButton();
+
+
+var THREE, GLTFLoader;
+var content, XR8, placement;
+var fiducialTexture = null;
+var pendingPlace = false;
+var AR_FIT_MAX = 1.5;
+var _exportRt = null;
+
+async function getExportRuntime() {
+  if (!_exportRt) _exportRt = await import('./ar-runtime.js');
+  return _exportRt;
+}
+
+async function startDesktopPreview() {
+  var dev = detectExportDevice();
+  hideStartGate();
+  updatePageLoadingLabel('Loading scene…');
+  try {
+    var rt = await loadExportSceneAssets();
+    setStatus('Starting desktop preview…', 1);
+    updatePageLoadingLabel('Starting desktop preview…');
+    _desktopCtrl = await rt.startZipDesktopPreview({
+      canvas: canvas,
+      content: content,
+      animations: _sceneAnimations,
+      sceneContext: buildZipSceneContext(),
+      splatAttach: exportSplatAttachFn(),
+      renderer: window.__headsetRenderer || null,
+      skipWebcam: !!window.__AR_HEADSET_BROWSER,
+      onStatus: function (msg) {
+        setStatus(msg, 5);
+        updatePageLoadingLabel(msg);
+      },
+    });
+    await ensureExportDesktopGestureHelp(rt);
+    updatePageLoadingLabel('Preparing playback…');
+    await holdPageLoadingUntilPlaybackStable();
+    setStatus(window.__AR_HEADSET_BROWSER
+      ? 'AR in the browser — Enter VR or Enter XR for the headset'
+      : 'Desktop preview — middle-drag to orbit · Shift+middle pan · Ctrl+middle zoom · scroll to zoom', 4);
+  } catch (e) {
+    console.error('[AR export desktop]', e);
+    setStatus('Error: ' + formatExportArError(e, dev), 9);
+  } finally {
+    endAllPageLoading();
+  }
+}
+
+async function startMobileAR() {
+  var dev = detectExportDevice();
+  if (!window.isSecureContext) {
+    setStatus('Open over HTTPS to use the camera (unzip and upload this folder to an HTTPS host).', 9);
+    endAllPageLoading();
+    return;
+  }
+  hideStartGate();
+  updatePageLoadingLabel('Loading AR…');
+  try {
+    var rt = await loadExportSceneAssets();
+
+    setStatus('Loading AR engine…', 1);
+    var stack = await loadXR8Stack();
+    XR8 = stack.XR8;
+    var XRExtras = stack.XRExtras;
+
+    try { XR8.Threejs.configure({ renderCameraTexture: true }); } catch (e) {}
+    try { XR8.clearCameraPipelineModules(); } catch (e) {}
+
+    var fiducialPreload = rt.preloadTomoeFiducial(THREE, './LTomoe.png').catch(function () { return null; });
+    fiducialTexture = await fiducialPreload;
+
+    function requestPlace() {
+      if (!placement) { pendingPlace = true; return; }
+      placement.tryPlace();
+    }
+
+    XR8.addCameraPipelineModules([
+      XR8.GlTextureRenderer.pipelineModule(),
+      XR8.Threejs.pipelineModule(),
+      XR8.XrController.pipelineModule(),
+      XRExtras.FullWindowCanvas.pipelineModule(),
+      {
+        name: 'ar-slam-scene',
+        onAttach: function () { if (!camReady) setStatus('Requesting camera permission…', 1); },
+        onCameraStatusChange: function (detail) {
+          var st = detail && detail.status;
+          if (st === 'failed') {
+            setStatus(formatExportArError(new Error('Camera failed'), dev), 9);
+            endPageLoading();
+            return;
+          }
+          if (camReady) return;
+          if (st === 'requesting') setStatus('Requesting camera permission…', 1);
+          else if (st === 'hasStream') setStatus('Camera started — scan surfaces…', 2);
+          else if (st === 'hasVideo') setStatus('Move device slowly — tap to place the model.', 3);
+        },
+        onStart: function () {
+          camReady = true;
+          void (async function () {
+            try {
+              var xr = XR8.Threejs.xrScene();
+              var scene = xr.scene, camera = xr.camera, renderer = xr.renderer;
+              if (!scene || !camera) {
+                setStatus('AR scene failed to start — reload the page and try again.', 9);
+                endPageLoading();
+                return;
+              }
+              prepareXR8CameraPassthrough(scene, renderer);
+              prepareStandaloneAr(scene, renderer, content);
+              await applyExportedLighting(scene, renderer, THREE, content);
+              prepareXR8CameraPassthrough(scene, renderer);
+              attachExportedSpark(scene, renderer);
+
+              placement = rt.createExportSlamPlacement({
+                THREE: THREE,
+                XR8: XR8,
+                scene: scene,
+                content: content,
+                fiducialUrl: './LTomoe.png',
+                fiducialTexture: fiducialTexture,
+                fiducialFitMaxDim: AR_FIT_MAX,
+                twoFingerRotate: !!(_sceneManifest && _sceneManifest.worldPlacement && _sceneManifest.worldPlacement.twoFingerRotate),
+                lockGroundPlane: !!(_sceneManifest && _sceneManifest.worldPlacement && _sceneManifest.worldPlacement.lockGroundPlane),
+                onPlaced: function () {
+                  startExportedPlayback(content);
+                  requestAnimationFrame(function () {
+                    void attachExportedGestures(canvas, {
+                      isPlaced: function () { return placement && placement.isPlaced && placement.isPlaced(); },
+                    });
+                    void attachExportedExperienceHudButton();
+                  });
+                },
+                onStatus: function (msg) { setStatus(msg, 5); },
+              });
+              placement.onStart();
+              placement.bindTap(canvas, '#hud, #startgate, #audio, .ar-export-mute-btn');
+              placement.bindPinch(canvas);
+
+              XR8.XrController.updateCameraProjectionMatrix({ origin: camera.position, facing: camera.quaternion });
+              setStatus('Move device slowly — tap to place · pinch to scale after placing.', 4);
+              if (pendingPlace) {
+                pendingPlace = false;
+                placement.tryPlace();
+              }
+              finishPageLoadingSceneReady();
+            } catch (err) {
+              console.error('[AR export] onStart failed', err);
+              setStatus('AR setup failed: ' + formatExportArError(err, dev), 9);
+              endPageLoading();
+            }
+          })();
+        },
+        onCanvasTouched: function () { requestPlace(); },
+        onUpdate: function () {
+          tickExportedScene();
+          placement?.onUpdate();
+        },
+      },
+    ]);
+
+    setStatus('Starting camera…', 1);
+    XR8.run({
+      canvas: canvas,
+      cameraConfig: { direction: XR8.XrConfig.camera().BACK },
+    });
+  } catch (e) {
+    console.error('[AR export]', e);
+    setStatus('Error: ' + formatExportArError(e, dev), 9);
+    endPageLoading();
+  }
+}
+
+function onStartClick() {
+  var dev = detectExportDevice();
+  if (dev.isHeadset) {
+    window.__AR_HEADSET_BROWSER = true;
+    startDesktopPreview();
+    return;
+  }
+  if (dev.isMobile) startMobileAR();
+  else startDesktopPreview();
+}
+
+document.getElementById('startbtn')?.addEventListener('click', onStartClick);
+</script>
+</body>
+</html>

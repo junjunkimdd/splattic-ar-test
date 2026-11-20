@@ -1,0 +1,109 @@
+Splattic — THIRD-PARTY NOTICES
+================================
+
+This package was exported from Splattic (TACTIC / Tactic Studio).
+It may include open-source and third-party components listed below.
+Keep this file with redistributed copies of the export.
+Full product terms: https://tactic-studio.gitlab.io/splat_gltf_editor/landing/legal.html
+
+--- Runtime libraries (typical HTML / viewer / AR packages) ---
+
+three.js (and examples addons such as GLTFLoader, FBXLoader, USDLoader, EXRLoader, etc.)
+  License: MIT
+  https://github.com/mrdoob/three.js
+  USDLoader / vendored USD parsers — editor import-only; not shipped as a separate runtime in exports
+
+PlayCanvas Engine (playcanvas) — when used by the export
+  License: MIT
+  https://github.com/playcanvas/engine
+
+PlayCanvas SplatTransform (@playcanvas/splat-transform) — when used
+  (editor Splat Collision — Future Implementation, currently inactive: generates *.collision.glb meshes packed with exports)
+  License: MIT
+  https://github.com/playcanvas/splat-transform
+
+@adobe/spz — SPZ reader used by SplatTransform (editor only)
+  License: ISC
+  https://www.npmjs.com/package/@adobe/spz
+
+Spark (@sparkjsdev/spark) — Gaussian splat renderer (when splats are included)
+  License: MIT
+  https://github.com/sparkjsdev/spark
+  https://sparkjs.dev/
+
+GaussianSplats3D (mkkellogg) — when bundled/used
+  License: MIT
+  Copyright (c) Mark Kellogg
+  https://github.com/mkkellogg/GaussianSplats3D
+
+cannon-es — rigid-body physics for DYN_ / COL_ objects (when the scene uses physics)
+  License: MIT
+  Copyright (c) 2015 cannon.js Authors
+  https://github.com/pmndrs/cannon-es
+
+JSZip — when used to pack this archive
+  License: MIT OR GPL-3.0-or-later (MIT option used for notices)
+  https://github.com/Stuk/jszip
+
+fflate
+  License: MIT
+  https://github.com/101arrowz/fflate
+
+fzstd
+  License: MIT
+  Copyright (c) Arjun Barrett
+  https://github.com/101arrowz/fzstd
+
+4dgs SDK (avala-ai/4dgs, avala-ai/4dgs-viewer) — 4D Gaussian splat (.4dgs) reader / playback
+  (bundled in fourdgs-runtime.js when the export includes a 4DGS;
+  built with local Splattic modifications — preserve upstream LICENSE and NOTICE)
+  License: Apache-2.0
+  4dgs — a container format for 4D gaussian splat scenes. Copyright 2026 Avala AI
+  https://github.com/avala-ai/4dgs
+  https://github.com/avala-ai/4dgs-viewer
+  https://www.apache.org/licenses/LICENSE-2.0
+
+ffmpeg.wasm (@ffmpeg/ffmpeg, @ffmpeg/core) — editor only, when AR export
+  movie web optimization is enabled (not bundled inside exported AR zips)
+  License: MIT (JS wrapper); LGPL v2.1+ / GPL v2+ (FFmpeg in core)
+  https://github.com/ffmpegwasm/ffmpeg.wasm
+
+lamejs (@breezystack/lamejs) — editor only, encodes exported audio to MP3
+  (not bundled inside exported zips)
+  License: LGPL-3.0 (JavaScript port of LAME)
+  https://github.com/shijinyu/lamejs
+
+--- Web AR (8th Wall / Niantic Spatial) ---
+
+AR packages load or reference:
+  @8thwall/engine-binary (XR Engine binary) — see Niantic Spatial / 8th Wall engine license
+  @8thwall/xrextras — open-source helpers (MIT per upstream materials)
+
+Upstream: https://github.com/8thwall/8thwall
+Site: https://www.8thwall.com/
+Engine license reference often linked as:
+  https://github.com/8thwall/engine/blob/main/LICENSE
+
+If you host this AR experience for a commercial campaign, review the current
+8th Wall / Niantic Spatial terms for the engine binary before launch.
+
+--- MIT license (reference text) ---
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, subject to including the copyright notice and this
+permission notice in all copies or substantial portions of the Software.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.
+
+Individual projects retain their own copyright notices; see the URLs above for full LICENSE files.
+
+--- Sample / demo content (editor empty-start) ---
+
+Editor sample scenes under sample_models/ may include third-party Mixamo-derived
+animation and third-party audio for trying the editor only.
+TACTIC / Splattic does NOT sublicense those assets for your production shipping.
+Do not copy, redistribute, or commercially exploit sample audio/animations without
+separate rights. Sample bed/SFX credits (Pixabay Content License) are listed at:
+  https://tactic-studio.gitlab.io/splat_gltf_editor/landing/legal.html#sample-content
